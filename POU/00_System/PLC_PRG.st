@@ -4,5 +4,4 @@ VAR
 END_VAR
 
 (* 1. Обработка датчиков *)
-PRG_SensorProcessing(); (* Вызов программы обработки *)
-PRG_LevelSensorTest();
+PRG_SensorProcessing();
