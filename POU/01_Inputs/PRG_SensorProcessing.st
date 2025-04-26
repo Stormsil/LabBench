@@ -15,10 +15,10 @@ VAR
     fbPressure_PumpOut1: FB_PressureSensor;    	    (* Датчик после насоса 1 ((-100)-400 кПа) *)
     fbPressure_PumpIn2: FB_PressureSensor;     	    (* Датчик перед насосом 2 ((-100)-400 кПа) *)
     fbPressure_PumpOut2: FB_PressureSensor;    	    (* Датчик после насоса 2 ((-100)-400 кПа) *)
-    fbFloatLevelSensors: FB_FloatLevelSensorGroup;  (* Группа поплавковых датчиков уровня *)
 
-    (* Датчик уровня *)
-    fbLevel_KIE1: FB_HydroLevelSensor;         (* Гидростатический датчик в емкости КИЕ1 *)
+    (* Датчики уровня *)
+    fbLevel_KIE1: FB_HydroLevelSensor;              (* Гидростатический датчик в емкости КИЕ1 *)
+    fbFloatLevelSensors: FB_FloatLevelSensorGroup;  (* Группа поплавковых датчиков уровня *)
     
     (* Служебные переменные *)
     bResetErrors: BOOL;                        (* Сброс ошибок всех датчиков *)
