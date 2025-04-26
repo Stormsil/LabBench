@@ -94,5 +94,16 @@ fbPressure_PumpOut2(                           (* Исправлено имя э
     stData => GVL_stPressurePumpOut2           (* Результаты в глобальной переменной *)
 );
 
+(* Обработка сигналов с поплавковых датчиков в емкости *)
+fbFloatLevelSensors(
+    bLowLevelSensor := DI_Level_Low,    (* Сигнал с нижнего датчика (150 мм) *)
+    bMidLevelSensor := DI_Level_Mid,    (* Сигнал со среднего датчика (250 мм) *)
+    bHighLevelSensor := DI_Level_Hight, (* Сигнал с верхнего датчика (350 мм) *)
+    rTankHeightMM := 500.0,             (* Высота емкости 500 мм *)
+    bEnable := TRUE,
+    bReset := bResetErrors,
+    stData => GVL_stFloatLevelSensors   (* Результаты в глобальной переменной *)
+);
+
 (* Сброс флага управления *)
 bResetErrors := FALSE;

@@ -13,7 +13,7 @@ STRUCT
     rLevelPercent: REAL;          (* Уровень в процентах от максимального *)
     
     (* Статус датчика *)
-    eStatus: E_AI_Status; (* Статус датчика *)
+    eStatus: E_Inputs_Status; (* Статус датчика *)
     wErrorCode: WORD;             (* Код ошибки, битовая маска *)
     bValid: BOOL;                 (* Флаг достоверности данных *)
     

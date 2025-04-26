@@ -14,4 +14,5 @@ VAR_GLOBAL
     GVL_stPressurePumpOut1:     ST_PressureSensor_Data;  	(* Структура датчика давления после насоса 1 *)
     GVL_stPressurePumpIn2: 		ST_PressureSensor_Data;  	(* Структура датчика давления перед насосом 2 *)
     GVL_stPressurePumpOut2: 	ST_PressureSensor_Data;  	(* Структура датчика давления после насоса 2 *)
+    GVL_stFloatLevelSensors:    ST_FloatLevelGroup_Data;    (* Структура группы поплавковых датчиков уровня *)
 END_VAR
