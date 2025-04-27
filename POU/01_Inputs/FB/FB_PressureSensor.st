@@ -1,35 +1,36 @@
 (*==============================================================================
-    Название:    FB_HydroLevelSensor
+    Название:    FB_PressureSensor
     Автор:       Редько А.
     Дата:        2025-04-25
     Версия:      1.1
     
-    Описание:    Функциональный блок для гидростатического
-                 датчика уровня.
+    Описание:    Функциональный блок для датчиков давления.
                  
-                 Входные сигналы получены после масштабирования в конфигурации ПЛК.
-                 Блок пересчитывает давление в уровень жидкости (мм).
+                 Данные получаются после масштабирования в конфигурации ПЛК.
+                 Блок проверяет статус измерения, выполняет проверку на
+                 превышение предельного значения и формирует структуру данных
+                 с результатами.
                  
+    Примечание:  Фильтрация и обработка статусов выполняется в конфигурации ПЛК
 ==============================================================================*)
-FUNCTION_BLOCK FB_HydroLevelSensor
+FUNCTION_BLOCK FB_PressureSensor
 VAR_INPUT
-    rPressurePa: REAL;             (* Давление от датчика после масштабирования, Па *)
-    rMaxAllowedLevelMM: REAL;      (* Максимально допустимый уровень, мм *)
-    rDensity: REAL := 1000.0;      (* Плотность жидкости, кг/м? *)
-    rGravity: REAL := 9.81;        (* Ускорение свободного падения, м/с? *)
-    rLevelOffset: REAL := 0.0;     (* Смещение уровня, мм (если датчик ниже дна) *)
-    bEnable: BOOL := TRUE;         (* Разрешение работы *)
-    bReset: BOOL;                  (* Сброс ошибок *)
+    rPressureKPa: REAL;         (* Давление в кПа (с аналогового входа после масштабирования) *)
+    rMaxPressureKPa: REAL;      (* Максимально допустимое давление, кПа *)
+    bEnable: BOOL := TRUE;      (* Разрешение работы *)
+    bReset: BOOL;               (* Сброс ошибок *)
 END_VAR
+
 VAR_OUTPUT
-    stData: ST_HydroLevel_Data;    (* Структура с результатами *)
+    stData: ST_PressureSensor_Data;  (* Структура с результатами *)
 END_VAR
+
 VAR
     (* Системные переменные *)
     byStatus: BYTE;              (* Старший байт из переменной для анализа статуса *)
-    bValid: BOOL;                  (* Флаг валидности данных *)
-    rCalculatedLevelMM: REAL;      (* Вычисленный уровень до проверок *)
+    bValid: BOOL;                 (* Флаг валидности данных *)
 END_VAR
+
 VAR CONSTANT
     (* Константы для статусов аналогового входа (старший байт) *)
     ERR_NONE: BYTE := 16#00;           (* Ошибок нет *)
@@ -40,54 +41,46 @@ VAR CONSTANT
     ERR_CURRENT_OVERLOAD: BYTE := 16#FC;(* Перегрузка в канале измерения тока *)
     ERR_VOLTAGE_BREAK: BYTE := 16#FD;  (* Обрыв датчика в канале измерения напряжения *)
     
-    (* Битовая маска для кодов ошибок *)
-    ERROR_CONFIG: WORD := 16#0001;           (* Ошибка конфигурации *)
-    ERROR_VALUE_ABOVE_MAX: WORD := 16#0002;  (* Превышение макс. допустимого уровня *)
-    ERROR_AI_ABOVE_RANGE: WORD := 16#0004;   (* Превышение диапазона аналогового входа *)
-    ERROR_AI_BELOW_RANGE: WORD := 16#0008;   (* Значение ниже диапазона аналогового входа *)
-    ERROR_WIRE_BREAK: WORD := 16#0010;       (* Обрыв линии датчика *)
-    ERROR_CURRENT_OVERLOAD_MASK: WORD := 16#0020; (* Перегрузка в канале измерения тока *)
-    ERROR_NOT_READY_MASK: WORD := 16#0040;   (* Измерение не готово *)
-    ERROR_UNKNOWN: WORD := 16#8000;          (* Неизвестная ошибка *)
+    (* Битовые маски для кодов ошибок *)
+    ERROR_NONE: WORD := 16#0000;           (* Нет ошибок *)
+    ERROR_CONFIG: WORD := 16#0001;         (* Ошибка конфигурации *)
+    ERROR_VALUE_ABOVE_MAX: WORD := 16#0002;    (* Превышение максимального давления *)
+    ERROR_AI_ABOVE_RANGE: WORD := 16#0004; (* Превышение диапазона аналогового входа *)
+    ERROR_AI_BELOW_RANGE: WORD := 16#0008; (* Значение ниже диапазона аналогового входа *)
+    ERROR_WIRE_BREAK: WORD := 16#0010;     (* Обрыв линии датчика *)
+    ERROR_CURRENT_OVERLOAD: WORD := 16#0020; (* Перегрузка в канале измерения тока *)
+    ERROR_NOT_READY: WORD := 16#0040;      (* Измерение не готово *)
+    ERROR_UNKNOWN: WORD := 16#8000;        (* Неизвестная ошибка *)
 END_VAR
-
 
 (* ======================================================================== *)
 (* Основная логика функционального блока                                    *)
 (* ======================================================================== *)
 
 (* Инициализация *)
-stData.rRawPressurePa := rPressurePa;  (* Сохраняем исходное значение для диагностики *)
-stData.wErrorCode := 0;
+stData.rPressureKPa := rPressureKPa;  (* Сохраняем исходное значение *)
+stData.wErrorCode := ERROR_NONE;
 stData.bValid := FALSE;
 bValid := FALSE;
 
 (* Проверка конфигурации *)
-IF rMaxAllowedLevelMM <= 0.0 THEN
-    (* Некорректно задан максимальный допустимый уровень *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERROR_CONFIG;
-    
-ELSIF rDensity <= 0.0 THEN
-    (* Некорректно задана плотность жидкости *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERROR_CONFIG;
-    
-ELSIF rGravity <= 0.0 THEN
-    (* Некорректно задано ускорение свободного падения *)
+IF rMaxPressureKPa <= 0.0 THEN
+    (* Некорректно задано максимальное давление *)
     stData.eStatus := STATUS_CONFIG_ERROR;
     stData.wErrorCode := stData.wErrorCode OR ERROR_CONFIG;
     
 ELSIF NOT bEnable THEN
     (* Блок отключен - возвращаем нулевые значения *)
     stData.eStatus := STATUS_OK;
-    stData.rLevelMM := 0.0;
-    stData.rLevelPercent := 0.0;
-    stData.wErrorCode := 0;
+    stData.rPressureKPa := 0.0;
+    stData.wErrorCode := ERROR_NONE;
     stData.bValid := FALSE;
     
 ELSE
     (* Нормальная работа - обработка данных и проверка ошибок *)
+    
+    (* Получение старшего байта для анализа статуса *)
+    byStatus := DWORD_TO_BYTE(SHR(REAL_TO_DWORD(rPressureKPa) AND 16#FF000000, 24));
 
     (* Проверка статуса аналогового входа *)
     CASE byStatus OF
@@ -117,13 +110,13 @@ ELSE
         ERR_CURRENT_OVERLOAD:
             (* Перегрузка в канале измерения тока *)
             stData.eStatus := STATUS_CURRENT_OVERLOAD;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_CURRENT_OVERLOAD_MASK;
+            stData.wErrorCode := stData.wErrorCode OR ERROR_CURRENT_OVERLOAD;
             bValid := FALSE;
             
         ERR_NOT_READY:
             (* Измерение не готово *)
             stData.eStatus := STATUS_NOT_READY;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_NOT_READY_MASK;
+            stData.wErrorCode := stData.wErrorCode OR ERROR_NOT_READY;
             bValid := FALSE;
             
         ELSE
@@ -133,36 +126,9 @@ ELSE
             bValid := FALSE;
     END_CASE;
     
-    (* Расчет уровня по гидростатической формуле: h = P / (? * g) *)
-    (* Проверка деления на ноль *)
-    IF rDensity * rGravity > 0.001 THEN
-        (* Перевод метров в миллиметры (умножение на 1000) *)
-        rCalculatedLevelMM := (rPressurePa / (rDensity * rGravity)) * 1000.0;
-        
-        (* Добавление смещения уровня (для коррекции положения датчика) *)
-        rCalculatedLevelMM := rCalculatedLevelMM + rLevelOffset;
-        
-        (* Ограничение снизу нулем - уровень не может быть отрицательным *)
-        stData.rLevelMM := MAX(0.0, rCalculatedLevelMM);
-        
-        (* Расчет процентного значения от максимального уровня *)
-        IF rMaxAllowedLevelMM > 0.0 THEN
-            stData.rLevelPercent := (stData.rLevelMM / rMaxAllowedLevelMM) * 100.0;
-        ELSE
-            stData.rLevelPercent := 0.0;
-        END_IF;
-    ELSE
-        (* Ошибка деления на ноль из-за конфигурации *)
-        stData.rLevelMM := 0.0;
-        stData.rLevelPercent := 0.0;
-        stData.eStatus := STATUS_CONFIG_ERROR;
-        stData.wErrorCode := stData.wErrorCode OR ERROR_CONFIG;
-        bValid := FALSE;
-    END_IF;
-    
-    (* Проверка на превышение максимально допустимого уровня емкости *)
-    IF stData.rLevelMM > rMaxAllowedLevelMM AND rMaxAllowedLevelMM > 0.0 THEN
-        (* Выставляем ошибку превышения физического уровня *)
+    (* Проверка на превышение максимально допустимого давления *)
+    IF rPressureKPa > rMaxPressureKPa AND rMaxPressureKPa > 0.0 AND bValid THEN
+        (* Выставляем ошибку превышения давления *)
         stData.eStatus := STATUS_VALUE_ABOVE_MAX;
         stData.wErrorCode := stData.wErrorCode OR ERROR_VALUE_ABOVE_MAX;
         bValid := FALSE;
@@ -175,6 +141,6 @@ END_IF;
 (* Сброс ошибок по внешнему сигналу *)
 IF bReset THEN
     stData.eStatus := STATUS_OK;
-    stData.wErrorCode := 0;
+    stData.wErrorCode := ERROR_NONE;
     stData.bValid := TRUE;
 END_IF;
