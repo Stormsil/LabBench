@@ -20,4 +20,15 @@ VAR_GLOBAL
     GVL_out_SCADA_PropValve_State: E_PropValveState;           (* Состояние крана *)
     GVL_out_SCADA_PropValve_ErrorCode: WORD;                   (* Код ошибки *)
     GVL_out_SCADA_PropValve_Moving: BOOL;                      (* Флаг движения крана *)
+
+    (* Электромагнитный клапан - входные переменные (из SCADA в ПЛК) *)
+    GVL_in_SCADA_EMValve_Open: BOOL := FALSE;                (* Команда открытия *)
+    GVL_in_SCADA_EMValve_Reset: BOOL := FALSE;               (* Сброс счетчиков *)
+    GVL_in_SCADA_EMValve_WarningTime: TIME := T#15M;         (* Порог предупреждения *)
+
+    (* Электромагнитный клапан - выходные переменные (из ПЛК в SCADA) *)
+    GVL_out_SCADA_EMValve_IsOpen: BOOL;                      (* Текущее состояние *)
+    GVL_out_SCADA_EMValve_State: E_EMValveState;             (* Состояние клапана *)
+    GVL_out_SCADA_EMValve_ContinuousOpTime: TIME;            (* Время непрерывной работы *)
+    GVL_out_SCADA_EMValve_TotalOpTime: TIME;                 (* Общее время работы *)
 END_VAR

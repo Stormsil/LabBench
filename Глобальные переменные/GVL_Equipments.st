@@ -9,4 +9,5 @@
 VAR_GLOBAL
     (* Структуры данных оборудования *)
     stPropValve: ST_PropValve;       (* Пропорциональный кран *)
+    stEMValve: ST_EMValve;            (* Электромагнитный клапан *)
 END_VAR

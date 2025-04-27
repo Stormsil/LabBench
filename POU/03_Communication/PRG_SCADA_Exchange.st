@@ -10,6 +10,7 @@ PROGRAM PRG_SCADA_Exchange
 VAR
     (* Локальные переменные для обработки команд *)
     bOldPropValveReset: BOOL := FALSE;  (* Предыдущее значение команды сброса *)
+    bOldEMValveReset: BOOL := FALSE;  (* Предыдущее значение команды сброса *)
 END_VAR
 
 (* ======================================================================== *)
@@ -49,3 +50,28 @@ GVL_out_SCADA_PropValve_Moving := stPropValve.bMoving;
 
 (* Сброс команд после обработки *)
 stPropValve.stCommands.bReset := FALSE;
+
+(* ======================================================================== *)
+(* Обмен данными с электромагнитным клапаном                                *)
+(* ======================================================================== *)
+
+(* ВХОДНЫЕ переменные - чтение команд и настроек со SCADA (in_SCADA -> ПЛК) *)
+(* Чтение порога предупреждения *)
+stEMValve.tWarningThreshold := GVL_in_SCADA_EMValve_WarningTime;
+
+(* Обработка команды сброса - по фронту сигнала *)
+IF GVL_in_SCADA_EMValve_Reset AND NOT bOldEMValveReset THEN
+    stEMValve.bReset := TRUE;
+END_IF;
+bOldEMValveReset := GVL_in_SCADA_EMValve_Reset;
+
+(* ВЫХОДНЫЕ переменные - запись данных в SCADA (ПЛК -> out_SCADA) *)
+(* Запись текущего состояния *)
+GVL_out_SCADA_EMValve_IsOpen := stEMValve.bIsOpen;
+GVL_out_SCADA_EMValve_Mode := stEMValve.eMode;
+GVL_out_SCADA_EMValve_State := stEMValve.eState;
+GVL_out_SCADA_EMValve_ContinuousOpTime := stEMValve.tContinuousOpTime;
+GVL_out_SCADA_EMValve_TotalOpTime := stEMValve.tOperationTime;
+
+(* Сброс команд после обработки *)
+stEMValve.bReset := FALSE;

@@ -8,10 +8,11 @@
 ==============================================================================*)
 PROGRAM PRG_EquipmentProcessing
 VAR
-    (* Экземпляры функциональных блоков *)
     fbPropValve: FB_PropValve;    (* Пропорциональный кран *)
+    fbEMValve: FB_EMValve;        (* Электромагнитный клапан *)
     
-    (* Локальные переменные *)
+
+
     bEmergencyStop: BOOL := FALSE; (* Общий сигнал аварийного останова *)
 END_VAR
 
@@ -38,5 +39,17 @@ fbPropValve(
 );
 
 (* ======================================================================== *)
-(* Здесь будет добавлено управление другим оборудованием                    *)
+(* Управление электромагнитным клапаном                                     *)
 (* ======================================================================== *)
+
+(* Обновление порога предупреждения из SCADA *)
+stEMValve.tWarningThreshold := GVL_in_SCADA_EMValve_WarningTime;
+
+(* Вызов функционального блока *)
+fbEMValve(
+    stValve := stEMValve,
+    bOpenCommand := GVL_in_SCADA_EMValve_Open,
+    bEmergencyStop := bEmergencyStop,
+    bEnable := TRUE,
+    bOutputSignal => DO_Open_Valve
+);
