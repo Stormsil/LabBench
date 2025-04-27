@@ -32,7 +32,7 @@ VAR
     (* Таймеры *)
     tonOperationTimer: TON;      (* Таймер работы соленоида *)
     tonInactiveTimer: TON;       (* Таймер простоя (для сброса счетчика непрерывной работы) *)
-    
+
     (* Внутренние переменные *)
     bInitialized: BOOL := FALSE; (* Флаг инициализации *)
     bPrevOpenState: BOOL;        (* Предыдущее состояние открытия *)
@@ -46,7 +46,7 @@ END_VAR
 IF NOT bInitialized THEN
     stValve.bIsOpen := FALSE;
     stValve.eMode := MANUAL;
-    stValve.eState := CLOSED;
+    stValve.eState := EM_CLOSED;
     stValve.tOperationTime := T#0S;
     stValve.tContinuousOpTime := T#0S;
     IF stValve.tWarningThreshold = T#0S THEN
@@ -94,12 +94,12 @@ stValve.bIsOpen := stValve.bOpen;
 (* Определение состояния клапана *)
 IF stValve.bIsOpen THEN
     IF stValve.tContinuousOpTime >= stValve.tWarningThreshold THEN
-        stValve.eState := LONG_OPERATION;
+        stValve.eState := EM_LONG_OPERATION;
     ELSE
-        stValve.eState := OPEN;
+        stValve.eState := EM_OPEN;
     END_IF;
 ELSE
-    stValve.eState := CLOSED;
+    stValve.eState := EM_CLOSED;
 END_IF;
 
 (* ======================================================================== *)

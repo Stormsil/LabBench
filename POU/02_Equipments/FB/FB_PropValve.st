@@ -78,7 +78,7 @@ IF NOT bIsInitialized THEN
     rLastValidPosition := 0.0;
     rPrevSetpoint := 0.0;
     stValve.eMode := stValve.stCommands.eMode;
-    stValve.eState := CLOSED;
+    stValve.eState := PROP_CLOSED;
     stValve.wErrorCode := ERR_NONE;
     stValve.bValid := FALSE;
     eLastMode := stValve.eMode;
@@ -138,7 +138,7 @@ ELSE
         
         eLastMode := stValve.stCommands.eMode;
     END_IF;
-    
+
     (* Применение режима работы *)
     stValve.eMode := stValve.stCommands.eMode;
     
@@ -301,20 +301,20 @@ END_IF;
 (* ======================================================================== *)
 
 (* Сброс состояния ошибки при устранении причин *)
-IF stValve.wErrorCode = ERR_NONE AND stValve.eState = ERROR THEN
+IF stValve.wErrorCode = ERR_NONE AND stValve.eState = PROP_ERROR THEN
     IF stValve.rActualPosition <= stValve.stSettings.rCloseThreshold THEN
-        stValve.eState := CLOSED;
+        stValve.eState := PROP_CLOSED;
     ELSIF stValve.rActualPosition >= stValve.stSettings.rOpenThreshold THEN
-        stValve.eState := OPEN;
+        stValve.eState := PROP_OPEN;
     ELSE
-        stValve.eState := INTERMEDIATE;
+        stValve.eState := PROP_INTERMEDIATE;
     END_IF;
 END_IF;
 
 (* Определение состояния крана на основе текущего положения и движения *)
 IF stValve.wErrorCode <> ERR_NONE THEN
     (* Наличие ошибок *)
-    stValve.eState := ERROR;
+    stValve.eState := PROP_ERROR;
     
 ELSIF stValve.bMoving THEN
     (* Кран в движении *)
@@ -323,25 +323,25 @@ ELSIF stValve.bMoving THEN
        ABS(stValve.rActualPosition - rEffectiveSetpoint) < stValve.stSettings.rRegulatingThreshold * 2.0 AND
        iDirectionChanges >= 3 THEN
         (* В автоматическом режиме при небольших колебаниях вокруг уставки *)
-        stValve.eState := REGULATING;
+        stValve.eState := PROP_REGULATING;
         
     ELSIF bDirectionOpening THEN
-        stValve.eState := OPENING;
+        stValve.eState := PROP_OPENING;
         
     ELSE
-        stValve.eState := CLOSING;
+        stValve.eState := PROP_CLOSING;
     END_IF;
     
 ELSE
     (* Кран неподвижен *)
     IF stValve.rActualPosition <= stValve.stSettings.rCloseThreshold THEN
-        stValve.eState := CLOSED;
+        stValve.eState := PROP_CLOSED;
         
     ELSIF stValve.rActualPosition >= stValve.stSettings.rOpenThreshold THEN
-        stValve.eState := OPEN;
+        stValve.eState := PROP_OPEN;
         
     ELSE
-        stValve.eState := INTERMEDIATE;
+        stValve.eState := PROP_INTERMEDIATE;
     END_IF;
     
     (* Сброс счетчика изменений направления, если кран неподвижен *)
@@ -355,7 +355,7 @@ END_IF;
 (* ======================================================================== *)
 
 (* При наличии ошибок переводим в безопасное положение *)
-IF stValve.eState = ERROR AND (stValve.wErrorCode AND (ERR_NO_FEEDBACK OR ERR_WIRE_BREAK)) > 0 THEN
+IF stValve.eState = PROP_ERROR AND (stValve.wErrorCode AND (ERR_NO_FEEDBACK OR ERR_WIRE_BREAK)) > 0 THEN
     rControlSignal := stValve.stSettings.rSafePosition;
 ELSE
     (* Нормальное формирование управляющего сигнала *)

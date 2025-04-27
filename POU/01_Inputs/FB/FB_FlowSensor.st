@@ -103,8 +103,8 @@ ELSE
         (* Расчет расхода в л/мин - универсальная формула для любого расходомера *)
         stData.rFlowLPM := (stData.rFrequencyHz * 60.0) / rPulsePerLiter;
         
-        (* Расчет расхода в м³/ч *)
-        stData.rFlowM3H := stData.rFlowLPM * 0.06; (* 1 л/мин = 0.06 м³/ч *)
+        (* Расчет расхода в м?/ч *)
+        stData.rFlowM3H := stData.rFlowLPM * 0.06; (* 1 л/мин = 0.06 м?/ч *)
         
         (* Расчет общего объема в литрах (полезно для учебных целей) *)
         stData.rTotalLiters := DWORD_TO_REAL(stData.dwPulseCount) / rPulsePerLiter;

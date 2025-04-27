@@ -8,11 +8,11 @@
 ==============================================================================*)
 PROGRAM PRG_EquipmentProcessing
 VAR
+    (* Экземпляры функциональных блоков *)
     fbPropValve: FB_PropValve;    (* Пропорциональный кран *)
     fbEMValve: FB_EMValve;        (* Электромагнитный клапан *)
-    
 
-
+    (* Локальные переменные *)
     bEmergencyStop: BOOL := FALSE; (* Общий сигнал аварийного останова *)
 END_VAR
 
@@ -33,9 +33,9 @@ stPropValve.stCommands.bExtEmergencyStop := bEmergencyStop;
 (* Вызов функционального блока *)
 fbPropValve(
     stValve := stPropValve,
-    rFeedbackSignal := AI_Position_PropValve,  
+    rFeedbackSignal := AI_Position_PropValve,  (* Сигнал уже масштабирован в конфигурации *)
     bEnable := TRUE,
-    rControlSignal => AO_SetPosition_PropValve 
+    rControlSignal => AO_SetPosition_PropValve
 );
 
 (* ======================================================================== *)
