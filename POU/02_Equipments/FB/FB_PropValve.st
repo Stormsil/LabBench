@@ -2,7 +2,7 @@
     Название:    FB_PropValve
     Автор:       Редько А.
     Дата:        2025-04-27
-    Версия:      1.0
+    Версия:      1.1
     
     Описание:    Функциональный блок для управления пропорциональным шаровым
                  краном с аналоговым управлением (4-20мА) и обратной связью
@@ -26,6 +26,7 @@ VAR
     (* Переменные диагностики движения *)
     rPrevPosition: REAL;          (* Предыдущее положение *)
     rEffectiveSetpoint: REAL;     (* Эффективная уставка с учетом режима работы *)
+    rPrevSetpoint: REAL;          (* Предыдущая уставка для обнаружения изменений *)
     
     (* Таймеры *)
     tonPositionTimeout: TON;      (* Таймер достижения позиции *)
@@ -39,8 +40,11 @@ VAR
     (* Предыдущие значения для обнаружения изменений *)
     eLastMode: E_EquipmentMode;   (* Предыдущий режим работы *)
     bDirectionOpening: BOOL;      (* Направление движения (TRUE - открытие) *)
+    bPrevDirectionOpening: BOOL;  (* Предыдущее направление движения *)
     iDirectionChanges: INT;       (* Счетчик изменений направления для REGULATING *)
     rPositionDelta: REAL;         (* Изменение положения за цикл *)
+    bStableRegulation: BOOL;      (* Флаг стабильного регулирования *)
+    tStableRegulationTime: TON;   (* Таймер стабильного регулирования *)
     byAIStatus: BYTE;             (* Статус аналогового входа *)
 END_VAR
 
@@ -72,10 +76,13 @@ END_VAR
 IF NOT bIsInitialized THEN
     rPrevPosition := 0.0;
     rLastValidPosition := 0.0;
+    rPrevSetpoint := 0.0;
     stValve.eMode := stValve.stCommands.eMode;
     stValve.eState := CLOSED;
     stValve.wErrorCode := ERR_NONE;
     stValve.bValid := FALSE;
+    eLastMode := stValve.eMode;
+    iDirectionChanges := 0;
     bIsInitialized := TRUE;
 END_IF;
 
@@ -122,6 +129,16 @@ ELSE
         stValve.stCommands.bReset := FALSE;
     END_IF;
     
+    (* Обнаружение изменения режима работы *)
+    IF stValve.stCommands.eMode <> eLastMode THEN
+        (* При выходе из режима AUTO, сбросить счетчик изменений направления *)
+        IF eLastMode = AUTO THEN
+            iDirectionChanges := 0;
+        END_IF;
+        
+        eLastMode := stValve.stCommands.eMode;
+    END_IF;
+    
     (* Применение режима работы *)
     stValve.eMode := stValve.stCommands.eMode;
     
@@ -146,6 +163,15 @@ ELSE
             rEffectiveSetpoint := stValve.stSettings.rSafePosition;
             stValve.rTargetPosition := stValve.stSettings.rSafePosition;
     END_CASE;
+    
+    (* Обнаружение значительного изменения уставки *)
+    IF ABS(rEffectiveSetpoint - rPrevSetpoint) > stValve.stSettings.rDeadband * 2.0 THEN
+        (* Сброс счетчика изменений направления при значительном изменении уставки *)
+        iDirectionChanges := 0;
+    END_IF;
+    
+    (* Сохранение текущей уставки для следующего цикла *)
+    rPrevSetpoint := rEffectiveSetpoint;
 END_IF;
 
 (* ======================================================================== *)
@@ -216,13 +242,18 @@ rPositionDelta := stValve.rActualPosition - rPrevPosition;
 
 (* Определение флагов движения с учетом зоны нечувствительности *)
 IF ABS(rPositionDelta) > stValve.stSettings.rDeadband / 2.0 THEN
+    (* Определение направления движения *)
     bDirectionOpening := rPositionDelta > 0.0;
     stValve.bMoving := TRUE;
     
     (* Обнаружение изменения направления для состояния REGULATING *)
-    IF bDirectionOpening <> bDirectionOpening THEN
+    IF stValve.eMode = AUTO AND bDirectionOpening <> bPrevDirectionOpening AND 
+       ABS(stValve.rActualPosition - rEffectiveSetpoint) < stValve.stSettings.rRegulatingThreshold * 2.0 THEN
         iDirectionChanges := iDirectionChanges + 1;
     END_IF;
+    
+    (* Сохранение текущего направления *)
+    bPrevDirectionOpening := bDirectionOpening;
 ELSE
     (* Нет движения или изменение в пределах зоны нечувствительности *)
     stValve.bMoving := FALSE;
@@ -236,6 +267,11 @@ END_IF;
 IF ABS(stValve.rActualPosition - rEffectiveSetpoint) <= stValve.stSettings.rDeadband THEN
     bPositionReached := TRUE;
     tonPositionTimeout(IN := FALSE);
+    
+    (* Сброс счетчика изменений направления при достижении уставки и прекращении движения *)
+    IF NOT stValve.bMoving AND stValve.eMode <> AUTO THEN
+        iDirectionChanges := 0;
+    END_IF;
 ELSE
     bPositionReached := FALSE;
     
@@ -249,7 +285,8 @@ ELSE
 END_IF;
 
 (* Проверка на заклинивание/поломку *)
-IF NOT bPositionReached AND NOT stValve.bMoving AND stValve.bValid THEN
+IF NOT bPositionReached AND NOT stValve.bMoving AND stValve.bValid AND
+   ABS(stValve.rActualPosition - rEffectiveSetpoint) > stValve.stSettings.rDeadband THEN
     tonStuckDetection(IN := TRUE, PT := stValve.stSettings.tStuckTimeout);
     
     IF tonStuckDetection.Q THEN
@@ -284,7 +321,7 @@ ELSIF stValve.bMoving THEN
     IF stValve.eMode = AUTO AND 
        ABS(rPositionDelta) < stValve.stSettings.rRegulatingThreshold AND 
        ABS(stValve.rActualPosition - rEffectiveSetpoint) < stValve.stSettings.rRegulatingThreshold * 2.0 AND
-       iDirectionChanges > 2 THEN
+       iDirectionChanges >= 3 THEN
         (* В автоматическом режиме при небольших колебаниях вокруг уставки *)
         stValve.eState := REGULATING;
         
@@ -305,6 +342,11 @@ ELSE
         
     ELSE
         stValve.eState := INTERMEDIATE;
+    END_IF;
+    
+    (* Сброс счетчика изменений направления, если кран неподвижен *)
+    IF stValve.eMode <> AUTO THEN
+        iDirectionChanges := 0;
     END_IF;
 END_IF;
 
