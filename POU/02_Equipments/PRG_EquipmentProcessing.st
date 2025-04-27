@@ -33,9 +33,9 @@ stPropValve.stCommands.bExtEmergencyStop := bEmergencyStop;
 (* Вызов функционального блока *)
 fbPropValve(
     stValve := stPropValve,
-    rFeedbackSignal := AI_Position_PropValve,  (* Сигнал уже масштабирован в конфигурации *)
+    rFeedbackSignal := AI_Position_PropValve,  
     bEnable := TRUE,
-    rControlSignal => AO_SetPosition_PropValve
+    rControlSignal => AO_SetPosition_PropValve 
 );
 
 (* ======================================================================== *)
@@ -43,13 +43,15 @@ fbPropValve(
 (* ======================================================================== *)
 
 (* Обновление порога предупреждения из SCADA *)
-stEMValve.tWarningThreshold := GVL_in_SCADA_EMValve_WarningTime;
+stEMValve.tWarningThreshold := GVL_in_SCADA_EMValve_WarningTime; (* Порог предупреждения *)
 
 (* Вызов функционального блока *)
 fbEMValve(
     stValve := stEMValve,
-    bOpenCommand := GVL_in_SCADA_EMValve_Open,
-    bEmergencyStop := bEmergencyStop,
+    bManualOpenCommand := GVL_in_SCADA_EMValve_Open,   (* Команда открытия в ручном режиме *)
+    bAutoOpenCommand := GVL_in_SCADA_EMValve_AutoOpen, (* Команда открытия от регулятора *)
+    bEmergencyStop := bEmergencyStop,               (* Общий сигнал аварийного останова *)
+    eMode := GVL_in_SCADA_EMValve_Mode,              (* Режим работы электромагнитного клапана *)
     bEnable := TRUE,
     bOutputSignal => DO_Open_Valve
 );

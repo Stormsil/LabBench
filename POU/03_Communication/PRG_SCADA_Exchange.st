@@ -56,8 +56,13 @@ stPropValve.stCommands.bReset := FALSE;
 (* ======================================================================== *)
 
 (* ВХОДНЫЕ переменные - чтение команд и настроек со SCADA (in_SCADA -> ПЛК) *)
+ 
 (* Чтение порога предупреждения *)
 stEMValve.tWarningThreshold := GVL_in_SCADA_EMValve_WarningTime;
+
+(* Чтение режима работы *)
+stEMValve.eMode := GVL_in_SCADA_EMValve_Mode;
+
 
 (* Обработка команды сброса - по фронту сигнала *)
 IF GVL_in_SCADA_EMValve_Reset AND NOT bOldEMValveReset THEN
@@ -66,6 +71,7 @@ END_IF;
 bOldEMValveReset := GVL_in_SCADA_EMValve_Reset;
 
 (* ВЫХОДНЫЕ переменные - запись данных в SCADA (ПЛК -> out_SCADA) *)
+
 (* Запись текущего состояния *)
 GVL_out_SCADA_EMValve_IsOpen := stEMValve.bIsOpen;
 GVL_out_SCADA_EMValve_Mode := stEMValve.eMode;

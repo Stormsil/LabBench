@@ -25,6 +25,8 @@ VAR_GLOBAL
     GVL_in_SCADA_EMValve_Open: BOOL := FALSE;                (* Команда открытия *)
     GVL_in_SCADA_EMValve_Reset: BOOL := FALSE;               (* Сброс счетчиков *)
     GVL_in_SCADA_EMValve_WarningTime: TIME := T#15M;         (* Порог предупреждения *)
+    GVL_in_SCADA_EMValve_Mode: E_EquipmentMode := MANUAL;    (* Режим работы *)
+    GVL_in_SCADA_EMValve_AutoOpen: BOOL := FALSE;            (* Команда от внешнего регулятора *)
 
     (* Электромагнитный клапан - выходные переменные (из ПЛК в SCADA) *)
     GVL_out_SCADA_EMValve_IsOpen: BOOL;                      (* Текущее состояние *)
