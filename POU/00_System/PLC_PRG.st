@@ -6,8 +6,10 @@ END_VAR
 (* 1. Обработка датчиков *)
 PRG_SensorProcessing();
 
-TYPE StructName : STRUCT
-        Valve1 : BOOL; (* Comment *)
-         : BOOL; (* Comment *)
-    END_STRUCT
-END_TYPE
+(* 2. Обработка оборудования *)
+    
+PRG_EquipmentProcessing();
+
+(* 3. Обмен данными с SCADA *)
+
+PRG_SCADA_Exchange();
