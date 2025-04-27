@@ -50,7 +50,7 @@ IF NOT bInitialized THEN
     stValve.tOperationTime := T#0S;
     stValve.tContinuousOpTime := T#0S;
     IF stValve.tWarningThreshold = T#0S THEN
-        stValve.tWarningThreshold := T#15M;
+        stValve.tWarningThreshold := T#15M; (* Значение по умолчанию *)
     END_IF;
     bInitialized := TRUE;
 END_IF;
