@@ -42,8 +42,19 @@ fbLevel_KIE1(
     rGravity := 9.81,                          				(* Ускорение свободного падения 9.81 м/с? *)
     rLevelOffset := -1.0,                      			(* Коррекция положения датчика -1 мм *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Level_Reset,
     stData => GVL_stHydroLevel_KIE1            (* Результаты в глобальную структуру *)
+);
+
+(* Обработка сигналов с поплавковых датчиков в емкости *)
+fbFloatLevelSensors(
+    bLowLevelSensor := DI_Level_Low,    (* Сигнал с нижнего датчика (150 мм) *)
+    bMidLevelSensor := DI_Level_Mid,    (* Сигнал со среднего датчика (250 мм) *)
+    bHighLevelSensor := DI_Level_Hight, (* Сигнал с верхнего датчика (350 мм) *)
+    rTankHeightMM := 500.0,             (* Высота емкости 500 мм *)
+    bEnable := TRUE,
+    bReset := GVL_SCADA_in_Level_Reset,
+    stData => GVL_stFloatLevelSensors   (* Результаты в глобальной переменной *)
 );
 
 (* Обработка сигнала с датчика давления в КИЕ2 *)
@@ -51,7 +62,7 @@ fbPressure_KIE2(
     rPressureKPa := AI_Pressure_KIE2,          (* Давление в кПа (с аналогового входа) *)
     rMaxPressureKPa := 200.0,                 		(* Максимально допустимое давление 200 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressureKIE2			(* Результаты в глобальную структуру *)
 );
 
@@ -60,7 +71,7 @@ fbPressure_Pipe(
     rPressureKPa := AI_Pressure_Pipe,          	(* Давление в кПа (с аналогового входа) *)
     rMaxPressureKPa := 300.0,                  		(* Максимально допустимое давление 300 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressurePipe               	(* Результаты в глобальную структуру *)
 );
 
@@ -69,7 +80,7 @@ fbPressure_PumpIn1(
     rPressureKPa := AI_Pressure_PumpIn1,       	(* Давление в кПа (с аналогового входа) *)
     rMaxPressureKPa := 250.0,                  			(* Максимально допустимое давление 250 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressurePumpIn1            	(* Результаты в глобальную структуру *)
 );
 
@@ -78,7 +89,7 @@ fbPressure_PumpOut1(
     rPressureKPa := AI_Pressure_PumpOut1,      (* Давление в кПа (с аналогового входа) *)
     rMaxPressureKPa := 250.0,                  (* Максимально допустимое давление 250 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressurePumpOut1           (* Результаты в глобальной переменной *)
 );
 
@@ -87,7 +98,7 @@ fbPressure_PumpIn2(                            (* Исправлено имя э
     rPressureKPa := AI_Pressure_PumpIn2,       (* Исправлено имя входной переменной *)
     rMaxPressureKPa := 250.0,                  (* Максимально допустимое давление 250 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressurePumpIn2            (* Исправлено имя выходной переменной *)
 );
 
@@ -96,19 +107,8 @@ fbPressure_PumpOut2(                           (* Исправлено имя э
     rPressureKPa := AI_Pressure_PumpOut2,      (* Давление в кПа (с аналогового входа) *)
     rMaxPressureKPa := 250.0,                  (* Максимально допустимое давление 250 кПа *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Pressure_Reset,
     stData => GVL_stPressurePumpOut2           (* Результаты в глобальной переменной *)
-);
-
-(* Обработка сигналов с поплавковых датчиков в емкости *)
-fbFloatLevelSensors(
-    bLowLevelSensor := DI_Level_Low,    (* Сигнал с нижнего датчика (150 мм) *)
-    bMidLevelSensor := DI_Level_Mid,    (* Сигнал со среднего датчика (250 мм) *)
-    bHighLevelSensor := DI_Level_Hight, (* Сигнал с верхнего датчика (350 мм) *)
-    rTankHeightMM := 550.0,             (* Высота емкости 550 мм *)
-    bEnable := TRUE,
-    bReset := bResetErrors,
-    stData => GVL_stFloatLevelSensors   (* Результаты в глобальной переменной *)
 );
 
 (* Обработка сигнала с расходомера после насоса 1 *)
@@ -117,7 +117,7 @@ fbFlowSensor_PumpOut1(
     rPulsePerLiter := 64.8,                       (* 64.8 импульса на литр (1.08 Гц на 1 л/мин) *)
     tSampleTime := T#500MS,                       (* Период измерения *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Flow_Reset,
     stData => GVL_stFlowSensor_PumpOut1           (* Результаты *)
 );
 
@@ -127,7 +127,7 @@ fbFlowSensor_PumpOut2(
     rPulsePerLiter := 64.8,                       (* 64.8 импульса на литр (1.08 Гц на 1 л/мин) *)
     tSampleTime := T#500MS,                       (* Период измерения *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Flow_Reset,
     stData => GVL_stFlowSensor_PumpOut2           (* Результаты *)
 );
 
@@ -137,7 +137,7 @@ fbFlowSensor_Pipe(
     rPulsePerLiter := 125.0,                      (* 125 импульсов на литр *)
     tSampleTime := T#500MS,                       (* Период измерения *)
     bEnable := TRUE,
-    bReset := bResetErrors,
+    bReset := GVL_SCADA_in_Flow_Reset,
     stData => GVL_stFlowSensor_Pipe               (* Результаты *)
 );
 
