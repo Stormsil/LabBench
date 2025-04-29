@@ -2,21 +2,32 @@
     Название:    FB_FlowSensor
     Автор:       Редько А.
     Дата:        2025-04-27
-    Версия:      1.0
+    Версия:      1.1
     
     Описание:    Универсальный функциональный блок для расходомеров
                  с частотным/импульсным выходом.
+                 
+                 Реализован как level-controlled (LCon) блок
 ==============================================================================*)
-FUNCTION_BLOCK FB_FlowSensor
+FUNCTION_BLOCK FB_FlowSensor (* LCon *)
 VAR_INPUT
+    bEnable: BOOL := TRUE;        (* Разрешение работы *)
     wPulseCounter: WORD;          (* Значение счетчика импульсов *)
     rPulsePerLiter: REAL;         (* Количество импульсов на литр *)
     tSampleTime: TIME := T#500MS; (* Время выборки для расчета расхода *)
-    bEnable: BOOL := TRUE;        (* Разрешение работы *)
     bReset: BOOL;                 (* Сброс счетчиков и ошибок *)
 END_VAR
 VAR_OUTPUT
-    stData: ST_FlowSensor_Data;   (* Структура с результатами *)
+    bValid: BOOL;                 (* Данные достоверны *)
+    bError: BOOL;                 (* Флаг ошибки *)
+    wErrorID: WORD;               (* Код ошибки *)
+    rFlowLPM: REAL;               (* Расход в л/мин *)
+    rFlowM3H: REAL;               (* Расход в м³/ч *)
+    rTotalLiters: REAL;           (* Общий объем в литрах *)
+    rFrequencyHz: REAL;           (* Частота импульсов в Гц *)
+    eStatus: E_Inputs_Status;     (* Статус датчика *)
+    dwPulseCount: DWORD;          (* Накопленное количество импульсов *)
+    dwPulseDelta: DWORD;          (* Количество импульсов за период *)
 END_VAR
 VAR
     (* Переменные для обработки импульсов *)
@@ -26,10 +37,12 @@ VAR
     dwOverflowCounter: DWORD;     (* Счетчик переполнений WORD *)
     
     bFirstCycle: BOOL := TRUE;    (* Флаг первого цикла *)
-    bValid: BOOL;                 (* Флаг валидности данных *)
     
     tTimer: TON;                  (* Таймер для расчета расхода *)
     rSampleTimeInSec: REAL;       (* Время выборки в секундах *)
+    
+    (* Структура для обратной совместимости *)
+    stDataInternal: ST_FlowSensor_Data;
 END_VAR
 VAR CONSTANT
     (* Битовая маска для кодов ошибок *)
@@ -42,25 +55,26 @@ END_VAR
 (* ======================================================================== *)
 
 (* Инициализация *)
-
-stData.wErrorCode := ERR_NONE;
-stData.bValid := FALSE;
+wErrorID := ERR_NONE;
 bValid := FALSE;
+bError := FALSE;
 
 (* Проверка конфигурации *)
 IF rPulsePerLiter <= 0.0 THEN
     (* Некорректно задан коэффициент пересчета *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERR_CONFIG;
+    bError := TRUE;
     
 ELSIF NOT bEnable THEN
     (* Блок отключен - нулевые значения *)
-    stData.eStatus := STATUS_OK;
-    stData.rFlowLPM := 0.0;
-    stData.rFlowM3H := 0.0;
-    stData.rFrequencyHz := 0.0;
-    stData.wErrorCode := ERR_NONE;
-    stData.bValid := FALSE;
+    eStatus := STATUS_OK;
+    rFlowLPM := 0.0;
+    rFlowM3H := 0.0;
+    rFrequencyHz := 0.0;
+    wErrorID := ERR_NONE;
+    bValid := FALSE;
+    bError := FALSE;
     
 ELSE
     (* Нормальная работа - обработка данных *)
@@ -83,7 +97,7 @@ ELSE
     
     (* Расчет общего количества импульсов *)
     dwTotalPulseCount := dwCurrentPulseCount + dwOverflowCounter;
-    stData.dwPulseCount := dwTotalPulseCount;
+    dwPulseCount := dwTotalPulseCount;
     
     (* Запуск таймера для расчета расхода *)
     tTimer(IN := TRUE, PT := tSampleTime);
@@ -91,42 +105,52 @@ ELSE
     (* Расчет расхода по частоте импульсов *)
     IF tTimer.Q THEN
         (* Вычисление количества импульсов за период *)
-        stData.dwPulseDelta := dwTotalPulseCount - dwPrevPulseCount;
+        dwPulseDelta := dwTotalPulseCount - dwPrevPulseCount;
         dwPrevPulseCount := dwTotalPulseCount;
         
         (* Преобразование времени выборки в секунды *)
         rSampleTimeInSec := TIME_TO_REAL(tSampleTime) / 1000.0;
         
         (* Расчет частоты импульсов (Гц) *)
-        stData.rFrequencyHz := DWORD_TO_REAL(stData.dwPulseDelta) / rSampleTimeInSec;
+        rFrequencyHz := DWORD_TO_REAL(dwPulseDelta) / rSampleTimeInSec;
         
         (* Расчет расхода в л/мин - универсальная формула для любого расходомера *)
-        stData.rFlowLPM := (stData.rFrequencyHz * 60.0) / rPulsePerLiter;
+        rFlowLPM := (rFrequencyHz * 60.0) / rPulsePerLiter;
         
-        (* Расчет расхода в м?/ч *)
-        stData.rFlowM3H := stData.rFlowLPM * 0.06; (* 1 л/мин = 0.06 м?/ч *)
+        (* Расчет расхода в м³/ч *)
+        rFlowM3H := rFlowLPM * 0.06; (* 1 л/мин = 0.06 м³/ч *)
         
         (* Расчет общего объема в литрах (полезно для учебных целей) *)
-        stData.rTotalLiters := DWORD_TO_REAL(stData.dwPulseCount) / rPulsePerLiter;
+        rTotalLiters := DWORD_TO_REAL(dwPulseCount) / rPulsePerLiter;
         
         (* Данные валидны *)
         bValid := TRUE;
-        stData.eStatus := STATUS_OK;
+        bError := FALSE;
+        eStatus := STATUS_OK;
         
         (* Сброс таймера для следующего периода *)
         tTimer(IN := FALSE);
     END_IF;
-    
-    (* Установка флага валидности *)
-    stData.bValid := bValid;
 END_IF;
 
 (* Сброс по внешнему сигналу *)
 IF bReset THEN
     dwPrevPulseCount := dwCurrentPulseCount;
     dwOverflowCounter := 0;
-    stData.rTotalLiters := 0.0;
-    stData.eStatus := STATUS_OK;
-    stData.wErrorCode := ERR_NONE;
-    stData.bValid := TRUE;
+    rTotalLiters := 0.0;
+    eStatus := STATUS_OK;
+    wErrorID := ERR_NONE;
+    bValid := TRUE;
+    bError := FALSE;
 END_IF;
+
+(* Заполнение структуры для обратной совместимости *)
+stDataInternal.rFlowLPM := rFlowLPM;
+stDataInternal.rFlowM3H := rFlowM3H;
+stDataInternal.rTotalLiters := rTotalLiters;
+stDataInternal.rFrequencyHz := rFrequencyHz;
+stDataInternal.eStatus := eStatus;
+stDataInternal.wErrorCode := wErrorID;
+stDataInternal.bValid := bValid;
+stDataInternal.dwPulseCount := dwPulseCount;
+stDataInternal.dwPulseDelta := dwPulseDelta;

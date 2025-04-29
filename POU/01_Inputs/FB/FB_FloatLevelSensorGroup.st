@@ -2,7 +2,7 @@
     Название:    FB_FloatLevelSensorGroup
     Автор:       Редько А.
     Дата:        2025-04-26
-    Версия:      1.0
+    Версия:      1.1
     
     Описание:    Функциональный блок для группы поплавковых датчиков уровня.
                  Группа состоит из трех датчиков, расположенных на различных
@@ -13,18 +13,28 @@
                  
                  Блок обрабатывает сигналы с датчиков, определяет текущий
                  уровень жидкости и проверяет корректность показаний.
+                 
+                 Реализован как level-controlled (LCon) блок
 ==============================================================================*)
-FUNCTION_BLOCK FB_FloatLevelSensorGroup
+FUNCTION_BLOCK FB_FloatLevelSensorGroup (* LCon *)
 VAR_INPUT
+    bEnable: BOOL := TRUE;      (* Разрешение работы *)
     bLowLevelSensor: BOOL;      (* Сигнал с нижнего датчика (150 мм) *)
     bMidLevelSensor: BOOL;      (* Сигнал со среднего датчика (250 мм) *)
     bHighLevelSensor: BOOL;     (* Сигнал с верхнего датчика (350 мм) *)
     rTankHeightMM: REAL := 500.0; (* Высота емкости, мм *)
-    bEnable: BOOL := TRUE;      (* Разрешение работы *)
     bReset: BOOL;               (* Сброс ошибок *)
 END_VAR
 VAR_OUTPUT
-    stData: ST_FloatLevelGroup_Data; (* Структура с результатами *)
+    bValid: BOOL;               (* Данные достоверны *)
+    bError: BOOL;               (* Флаг ошибки *)
+    wErrorID: WORD;             (* Код ошибки *)
+    bLowLevelActive: BOOL;      (* Активен нижний датчик (150 мм) *)
+    bMidLevelActive: BOOL;      (* Активен средний датчик (250 мм) *)
+    bHighLevelActive: BOOL;     (* Активен верхний датчик (350 мм) *)
+    eStatus: E_Inputs_Status;   (* Статус датчика *)
+    rLevelEstimationMM: REAL;   (* Оценка текущего уровня в мм *)
+    rLevelPercent: REAL;        (* Оценка уровня в процентах от максимального *)
 END_VAR
 VAR
     (* Параметры датчиков *)
@@ -33,8 +43,8 @@ VAR
     rHighLevelHeightMM: REAL := 350.0; (* Высота верхнего датчика, мм *)
     
     (* Внутренние переменные *)
-    bValid: BOOL;                      (* Флаг валидности данных *)
     bSensorSequenceValid: BOOL;        (* Флаг валидности последовательности *)
+    stDataInternal: ST_FloatLevelGroup_Data; (* Внутренняя структура данных для обратной совместимости *)
 END_VAR
 VAR CONSTANT
     (* Битовая маска для кодов ошибок *)
@@ -48,105 +58,120 @@ END_VAR
 (* ======================================================================== *)
 
 (* Инициализация *)
-stData.bLowLevelActive := FALSE;
-stData.bMidLevelActive := FALSE;
-stData.bHighLevelActive := FALSE;
-stData.wErrorCode := ERR_NONE;
-stData.bValid := FALSE;
+bLowLevelActive := FALSE;
+bMidLevelActive := FALSE;
+bHighLevelActive := FALSE;
+wErrorID := ERR_NONE;
 bValid := FALSE;
+bError := FALSE;
 
 (* Проверка конфигурации *)
 IF rTankHeightMM <= 0.0 THEN
     (* Некорректно задана высота емкости *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERR_CONFIG;
+    bError := TRUE;
     
 ELSIF rLowLevelHeightMM <= 0.0 OR rMidLevelHeightMM <= 0.0 OR rHighLevelHeightMM <= 0.0 THEN
     (* Некорректно заданы высоты датчиков *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERR_CONFIG;
+    bError := TRUE;
     
 ELSIF rLowLevelHeightMM >= rMidLevelHeightMM OR rMidLevelHeightMM >= rHighLevelHeightMM THEN
     (* Нарушена последовательность высот датчиков *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERR_CONFIG;
+    bError := TRUE;
     
 ELSIF rHighLevelHeightMM >= rTankHeightMM THEN
     (* Верхний датчик выше высоты емкости *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERR_CONFIG;
+    bError := TRUE;
     
 ELSIF NOT bEnable THEN
     (* Блок отключен - возвращаем нулевые значения *)
-    stData.eStatus := STATUS_OK;
-    stData.rLevelEstimationMM := 0.0;
-    stData.rLevelPercent := 0.0;
-    stData.wErrorCode := ERR_NONE;
-    stData.bValid := FALSE;
+    eStatus := STATUS_OK;
+    rLevelEstimationMM := 0.0;
+    rLevelPercent := 0.0;
+    wErrorID := ERR_NONE;
+    bValid := FALSE;
+    bError := FALSE;
     
 ELSE
     (* Нормальная работа - обработка сигналов датчиков *)
     
     (* Копируем состояния датчиков *)
-    stData.bLowLevelActive := bLowLevelSensor;
-    stData.bMidLevelActive := bMidLevelSensor;
-    stData.bHighLevelActive := bHighLevelSensor;
+    bLowLevelActive := bLowLevelSensor;
+    bMidLevelActive := bMidLevelSensor;
+    bHighLevelActive := bHighLevelSensor;
     
     (* Проверка последовательности срабатывания датчиков *)
     (* Если верхний датчик активен, средний и нижний тоже должны быть активны *)
     (* Если средний датчик активен, нижний тоже должен быть активен *)
     bSensorSequenceValid := TRUE;
     
-    IF stData.bHighLevelActive AND (NOT stData.bMidLevelActive OR NOT stData.bLowLevelActive) THEN
+    IF bHighLevelActive AND (NOT bMidLevelActive OR NOT bLowLevelActive) THEN
         (* Верхний датчик активен, но средний или нижний - нет *)
         bSensorSequenceValid := FALSE;
-    ELSIF stData.bMidLevelActive AND NOT stData.bLowLevelActive THEN
+    ELSIF bMidLevelActive AND NOT bLowLevelActive THEN
         (* Средний датчик активен, но нижний - нет *)
         bSensorSequenceValid := FALSE;
     END_IF;
     
     IF NOT bSensorSequenceValid THEN
         (* Нарушена последовательность срабатывания датчиков *)
-        stData.eStatus := STATUS_INVALID_SEQUENCE;
-        stData.wErrorCode := stData.wErrorCode OR ERR_INVALID_SEQUENCE;
+        eStatus := STATUS_INVALID_SEQUENCE;
+        wErrorID := wErrorID OR ERR_INVALID_SEQUENCE;
         bValid := FALSE;
+        bError := TRUE;
     ELSE
         (* Последовательность корректна - определяем уровень *)
         bValid := TRUE;
+        bError := FALSE;
         
         (* Устанавливаем базовый статус *)
-        stData.eStatus := STATUS_OK;
+        eStatus := STATUS_OK;
         
         (* Оценка уровня на основе активных датчиков *)
-        IF stData.bHighLevelActive THEN
+        IF bHighLevelActive THEN
             (* Все три датчика активны - высокий уровень *)
-            stData.rLevelEstimationMM := rHighLevelHeightMM;
-        ELSIF stData.bMidLevelActive THEN
+            rLevelEstimationMM := rHighLevelHeightMM;
+        ELSIF bMidLevelActive THEN
             (* Активны нижний и средний датчики - средний уровень *)
-            stData.rLevelEstimationMM := rMidLevelHeightMM;
-        ELSIF stData.bLowLevelActive THEN
+            rLevelEstimationMM := rMidLevelHeightMM;
+        ELSIF bLowLevelActive THEN
             (* Активен только нижний датчик - низкий уровень *)
-            stData.rLevelEstimationMM := rLowLevelHeightMM;
+            rLevelEstimationMM := rLowLevelHeightMM;
         ELSE
             (* Ни один датчик не активен - уровень ниже нижнего датчика *)
-            stData.rLevelEstimationMM := rLowLevelHeightMM / 2.0; (* Примерная оценка - половина высоты нижнего датчика *)
+            rLevelEstimationMM := rLowLevelHeightMM / 2.0; (* Примерная оценка - половина высоты нижнего датчика *)
         END_IF;
         
         (* Расчет процентного значения от максимальной высоты *)
         IF rTankHeightMM > 0.0 THEN
-            stData.rLevelPercent := (stData.rLevelEstimationMM / rTankHeightMM) * 100.0;
+            rLevelPercent := (rLevelEstimationMM / rTankHeightMM) * 100.0;
         ELSE
-            stData.rLevelPercent := 0.0;
+            rLevelPercent := 0.0;
         END_IF;
     END_IF;
-    
-    (* Установка флага валидности *)
-    stData.bValid := bValid;
 END_IF;
 
 (* Сброс ошибок по внешнему сигналу *)
 IF bReset THEN
-    stData.eStatus := STATUS_OK;
-    stData.wErrorCode := ERR_NONE;
-    stData.bValid := TRUE;
+    eStatus := STATUS_OK;
+    wErrorID := ERR_NONE;
+    bValid := TRUE;
+    bError := FALSE;
 END_IF;
+
+(* Для обратной совместимости заполняем структуру stDataInternal *)
+stDataInternal.bLowLevelActive := bLowLevelActive;
+stDataInternal.bMidLevelActive := bMidLevelActive;
+stDataInternal.bHighLevelActive := bHighLevelActive;
+stDataInternal.eStatus := eStatus;
+stDataInternal.rLevelEstimationMM := rLevelEstimationMM;
+stDataInternal.rLevelPercent := rLevelPercent;
+stDataInternal.wErrorCode := wErrorID;
+stDataInternal.bValid := bValid;

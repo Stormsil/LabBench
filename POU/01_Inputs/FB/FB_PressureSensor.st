@@ -2,33 +2,40 @@
     Название:    FB_PressureSensor
     Автор:       Редько А.
     Дата:        2025-04-25
-    Версия:      1.1
+    Версия:      1.2
     
     Описание:    Функциональный блок для датчиков давления.
                  
                  Данные получаются после масштабирования в конфигурации ПЛК.
                  Блок проверяет статус измерения, выполняет проверку на
-                 превышение предельного значения и формирует структуру данных
-                 с результатами.
+                 превышение предельного значения и формирует результаты.
                  
-    Примечание:  Фильтрация и обработка статусов выполняется в конфигурации ПЛК
+                 Фильтрация и обработка статусов выполняется в конфигурации ПЛК
+                 
+                 Реализован как level-controlled (LCon) блок
 ==============================================================================*)
-FUNCTION_BLOCK FB_PressureSensor
+FUNCTION_BLOCK FB_PressureSensor (* LCon *)
 VAR_INPUT
+    bEnable: BOOL := TRUE;      (* Разрешение работы *)
     rPressureKPa: REAL;         (* Давление в кПа (с аналогового входа после масштабирования) *)
     rMaxPressureKPa: REAL;      (* Максимально допустимое давление, кПа *)
-    bEnable: BOOL := TRUE;      (* Разрешение работы *)
     bReset: BOOL;               (* Сброс ошибок *)
 END_VAR
 
 VAR_OUTPUT
-    stData: ST_PressureSensor_Data;  (* Структура с результатами *)
+    bValid: BOOL;               (* Данные достоверны *)
+    bError: BOOL;               (* Флаг ошибки *)
+    wErrorID: WORD;             (* Код ошибки *)
+    rPressureValue: REAL;       (* Давление в кПа *)
+    eStatus: E_Inputs_Status;   (* Статус датчика *)
 END_VAR
 
 VAR
     (* Системные переменные *)
-    byStatus: BYTE;              (* Старший байт из переменной для анализа статуса *)
-    bValid: BOOL;                 (* Флаг валидности данных *)
+    byStatus: BYTE;             (* Старший байт из переменной для анализа статуса *)
+    
+    (* Структура для обратной совместимости *)
+    stDataInternal: ST_PressureSensor_Data;
 END_VAR
 
 VAR CONSTANT
@@ -58,23 +65,25 @@ END_VAR
 (* ======================================================================== *)
 
 (* Инициализация *)
-stData.rPressureKPa := rPressureKPa;  (* Сохраняем исходное значение *)
-stData.wErrorCode := ERROR_NONE;
-stData.bValid := FALSE;
+rPressureValue := rPressureKPa;  (* Сохраняем исходное значение *)
+wErrorID := ERROR_NONE;
 bValid := FALSE;
+bError := FALSE;
 
 (* Проверка конфигурации *)
 IF rMaxPressureKPa <= 0.0 THEN
     (* Некорректно задано максимальное давление *)
-    stData.eStatus := STATUS_CONFIG_ERROR;
-    stData.wErrorCode := stData.wErrorCode OR ERROR_CONFIG;
+    eStatus := STATUS_CONFIG_ERROR;
+    wErrorID := wErrorID OR ERROR_CONFIG;
+    bError := TRUE;
     
 ELSIF NOT bEnable THEN
     (* Блок отключен - возвращаем нулевые значения *)
-    stData.eStatus := STATUS_OK;
-    stData.rPressureKPa := 0.0;
-    stData.wErrorCode := ERROR_NONE;
-    stData.bValid := FALSE;
+    eStatus := STATUS_OK;
+    rPressureValue := 0.0;
+    wErrorID := ERROR_NONE;
+    bValid := FALSE;
+    bError := FALSE;
     
 ELSE
     (* Нормальная работа - обработка данных и проверка ошибок *)
@@ -86,61 +95,73 @@ ELSE
     CASE byStatus OF
         ERR_NONE:
             (* Нормальные данные - статус OK *)
-            stData.eStatus := STATUS_OK;
+            eStatus := STATUS_OK;
             bValid := TRUE;
+            bError := FALSE;
             
         ERR_ABOVE_RANGE:
             (* Превышение диапазона аналогового входа *)
-            stData.eStatus := STATUS_AI_ABOVE_RANGE;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_AI_ABOVE_RANGE;
+            eStatus := STATUS_AI_ABOVE_RANGE;
+            wErrorID := wErrorID OR ERROR_AI_ABOVE_RANGE;
             bValid := FALSE;
+            bError := TRUE;
             
         ERR_BELOW_RANGE:
             (* Значение ниже диапазона аналогового входа *)
-            stData.eStatus := STATUS_AI_BELOW_RANGE;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_AI_BELOW_RANGE;
+            eStatus := STATUS_AI_BELOW_RANGE;
+            wErrorID := wErrorID OR ERROR_AI_BELOW_RANGE;
             bValid := FALSE;
+            bError := TRUE;
             
         ERR_VOLTAGE_BREAK:
             (* Обрыв линии датчика *)
-            stData.eStatus := STATUS_WIRE_BREAK;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_WIRE_BREAK;
+            eStatus := STATUS_WIRE_BREAK;
+            wErrorID := wErrorID OR ERROR_WIRE_BREAK;
             bValid := FALSE;
+            bError := TRUE;
             
         ERR_CURRENT_OVERLOAD:
             (* Перегрузка в канале измерения тока *)
-            stData.eStatus := STATUS_CURRENT_OVERLOAD;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_CURRENT_OVERLOAD;
+            eStatus := STATUS_CURRENT_OVERLOAD;
+            wErrorID := wErrorID OR ERROR_CURRENT_OVERLOAD;
             bValid := FALSE;
+            bError := TRUE;
             
         ERR_NOT_READY:
             (* Измерение не готово *)
-            stData.eStatus := STATUS_NOT_READY;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_NOT_READY;
+            eStatus := STATUS_NOT_READY;
+            wErrorID := wErrorID OR ERROR_NOT_READY;
             bValid := FALSE;
+            bError := TRUE;
             
         ELSE
             (* Прочие неизвестные ошибки *)
-            stData.eStatus := STATUS_UNKNOWN;
-            stData.wErrorCode := stData.wErrorCode OR ERROR_UNKNOWN;
+            eStatus := STATUS_UNKNOWN;
+            wErrorID := wErrorID OR ERROR_UNKNOWN;
             bValid := FALSE;
+            bError := TRUE;
     END_CASE;
     
     (* Проверка на превышение максимально допустимого давления *)
     IF rPressureKPa > rMaxPressureKPa AND rMaxPressureKPa > 0.0 AND bValid THEN
         (* Выставляем ошибку превышения давления *)
-        stData.eStatus := STATUS_VALUE_ABOVE_MAX;
-        stData.wErrorCode := stData.wErrorCode OR ERROR_VALUE_ABOVE_MAX;
+        eStatus := STATUS_VALUE_ABOVE_MAX;
+        wErrorID := wErrorID OR ERROR_VALUE_ABOVE_MAX;
         bValid := FALSE;
+        bError := TRUE;
     END_IF;
-    
-    (* Установка флага валидности *)
-    stData.bValid := bValid;
 END_IF;
 
 (* Сброс ошибок по внешнему сигналу *)
 IF bReset THEN
-    stData.eStatus := STATUS_OK;
-    stData.wErrorCode := ERROR_NONE;
-    stData.bValid := TRUE;
+    eStatus := STATUS_OK;
+    wErrorID := ERROR_NONE;
+    bValid := TRUE;
+    bError := FALSE;
 END_IF;
+
+(* Заполнение структуры для обратной совместимости *)
+stDataInternal.rPressureKPa := rPressureValue;
+stDataInternal.eStatus := eStatus;
+stDataInternal.wErrorCode := wErrorID;
+stDataInternal.bValid := bValid;
