@@ -7,9 +7,10 @@ END_VAR
 PRG_SensorProcessing();
 
 (* 2. Обработка оборудования *)
-    
 PRG_EquipmentProcessing();
 
 (* 3. Обмен данными с SCADA *)
-
 PRG_SCADA_Exchange();
+
+(* 4. Обработка диагностики и блокировок *)
+PRG_DiagnosticSystem();
