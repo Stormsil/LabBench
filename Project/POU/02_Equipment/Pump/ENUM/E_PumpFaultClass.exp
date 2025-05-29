@@ -1,0 +1,22 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(*Примечание: Классы ошибок насоса 
+  Описание: Классификация ошибок, связанных с работой насоса *)
+TYPE E_PumpFaultClass :
+(
+    PUMP_FAULT_NONE := 0,
+    PUMP_FAULT_DRY_RUN := 1,           (* Сухой ход *)
+    PUMP_FAULT_CLOSED_VALVE := 2,      (* Закрытая задвижка *)
+    PUMP_FAULT_CAVITATION := 3,        (* Кавитация *)
+    PUMP_FAULT_OVERLOAD := 4,          (* Перегрузка *)
+    PUMP_FAULT_LOW_FLOW := 5,          (* Низкий расход *)
+    PUMP_FAULT_HIGH_FLOW := 6,         (* Высокий расход *)
+    PUMP_FAULT_LOW_PRESSURE := 7,      (* Низкое давление *)
+    PUMP_FAULT_HIGH_PRESSURE := 8,     (* Высокое давление *)
+    PUMP_FAULT_MECHANICAL := 9,        (* Механическая неисправность *)
+    PUMP_FAULT_ELECTRICAL := 10,       (* Электрическая неисправность *)
+    PUMP_FAULT_EXTERNAL := 11,         (* Внешняя блокировка *)
+    PUMP_FAULT_COMMUNICATION := 12     (* Ошибка связи *)
+);
+END_TYPE

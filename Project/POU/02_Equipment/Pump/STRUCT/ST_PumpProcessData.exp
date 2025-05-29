@@ -1,0 +1,26 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* Данные процесса насоса *)
+TYPE ST_PumpProcessData :
+STRUCT
+    (* Измеряемые параметры *)
+    rPressureInlet : REAL;      (* Давление на входе, бар *)
+    rPressureOutlet : REAL;     (* Давление на выходе, бар *)
+    rFlow : REAL;               (* Расход, м?/ч *)
+    rTemperature : REAL;        (* Температура, ?C *)
+    
+    (* Параметры от ПЧ *)
+    rFrequency : REAL;          (* Частота, Гц *)
+    rCurrent : REAL;            (* Ток, А *)
+    rPower : REAL;              (* Мощность, кВт *)
+    rSpeed : REAL;              (* Скорость, об/мин *)
+    
+    (* Расчетные параметры *)
+    rDifferentialPressure : REAL;  (* Перепад давления, бар *)
+    rHead : REAL;                   (* Напор, м *)
+    rNPSHa : REAL;                  (* Доступный кавитационный запас, м *)
+    rEfficiency : REAL;             (* КПД, % *)
+    rSpecificPower : REAL;          (* Удельная мощность, кВт?ч/м? *)
+END_STRUCT
+END_TYPE

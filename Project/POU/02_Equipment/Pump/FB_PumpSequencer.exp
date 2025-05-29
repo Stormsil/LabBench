@@ -1,0 +1,299 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_PumpSequencer
+VAR_INPUT
+    i_xStart : BOOL;                        (* Команда пуска *)
+    i_xStop : BOOL;                         (* Команда останова *)
+    i_eMode : E_PumpMode;                   (* Режим работы *)
+    i_stProcessData : ST_PumpProcessData;  (* Данные процесса *)
+    i_stConfig : ST_PumpConfig;             (* Конфигурация *)
+END_VAR
+
+VAR_OUTPUT
+    o_eSequenceState : INT;                 (* Текущий шаг последовательности *)
+    o_xSequenceActive : BOOL;               (* Последовательность активна *)
+    o_xSequenceComplete : BOOL;             (* Последовательность завершена *)
+    o_xSequenceFault : BOOL;                (* Ошибка последовательности *)
+    o_sSequenceStatus : STRING(80);         (* Статус последовательности *)
+END_VAR
+
+VAR
+    (* Состояния последовательности *)
+    iSequenceState : INT;
+    iSequenceStatePrev : INT;
+    
+    (* Таймеры *)
+    tonStepTimer : TON;
+    tonSequenceTimeout : TON;
+    
+    (* Флаги *)
+    xStartSequence : BOOL;
+    xStopSequence : BOOL;
+    xStartRising : BOOL;
+    xStopRising : BOOL;
+    xStartPrev : BOOL;
+    xStopPrev : BOOL;
+    
+    (* Параметры последовательности *)
+    tStepTime : TIME;
+    tSequenceTimeout : TIME := T#60S;
+    
+    (* Условия *)
+    xPressureStable : BOOL;
+    xFlowStable : BOOL;
+    xValveOpen : BOOL;
+END_VAR
+
+(* Константы состояний последовательности *)
+VAR CONSTANT
+    SEQ_IDLE : INT := 0;
+    SEQ_START_CHECK : INT := 10;
+    SEQ_START_PREPARE : INT := 20;
+    SEQ_START_VALVE : INT := 30;
+    SEQ_START_PUMP : INT := 40;
+    SEQ_START_STABILIZE : INT := 50;
+    SEQ_RUNNING : INT := 100;
+    SEQ_STOP_PREPARE : INT := 110;
+    SEQ_STOP_REDUCE : INT := 120;
+    SEQ_STOP_PUMP : INT := 130;
+    SEQ_STOP_VALVE : INT := 140;
+    SEQ_STOP_COMPLETE : INT := 150;
+    SEQ_FAULT : INT := 999;
+END_VAR
+
+(* Тело функционального блока *)
+
+(* Детектирование фронтов *)
+xStartRising := i_xStart AND NOT xStartPrev;
+xStopRising := i_xStop AND NOT xStopPrev;
+xStartPrev := i_xStart;
+xStopPrev := i_xStop;
+
+(* Определение команд последовательности *)
+IF xStartRising AND (iSequenceState = SEQ_IDLE) THEN
+    xStartSequence := TRUE;
+ELSIF xStopRising AND (iSequenceState = SEQ_RUNNING) THEN
+    xStopSequence := TRUE;
+END_IF
+
+(* Таймер таймаута последовательности *)
+IF iSequenceState <> iSequenceStatePrev THEN
+    tonSequenceTimeout(IN := FALSE);
+    iSequenceStatePrev := iSequenceState;
+END_IF
+
+IF (iSequenceState > SEQ_IDLE) AND (iSequenceState < SEQ_RUNNING) THEN
+    tonSequenceTimeout(IN := TRUE, PT := tSequenceTimeout);
+ELSIF (iSequenceState > SEQ_RUNNING) AND (iSequenceState < SEQ_STOP_COMPLETE) THEN
+    tonSequenceTimeout(IN := TRUE, PT := tSequenceTimeout);
+ELSE
+    tonSequenceTimeout(IN := FALSE);
+END_IF
+
+(* Проверка таймаута *)
+IF tonSequenceTimeout.Q THEN
+    iSequenceState := SEQ_FAULT;
+    o_xSequenceFault := TRUE;
+END_IF
+
+(* Машина состояний последовательности *)
+CASE iSequenceState OF
+
+    SEQ_IDLE:
+        (* Ожидание *)
+        o_xSequenceActive := FALSE;
+        o_xSequenceComplete := FALSE;
+        o_xSequenceFault := FALSE;
+        o_sSequenceStatus := 'Idle';
+        
+        IF xStartSequence THEN
+            iSequenceState := SEQ_START_CHECK;
+            xStartSequence := FALSE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_START_CHECK:
+        (* Проверка условий пуска *)
+        o_xSequenceActive := TRUE;
+        o_sSequenceStatus := 'Checking start conditions';
+        
+        tonStepTimer(IN := TRUE, PT := T#1S);
+        
+        IF tonStepTimer.Q THEN
+            (* Проверка давления на входе *)
+            IF i_stProcessData.rPressureInlet >= i_stConfig.rMinInletPressure THEN
+                iSequenceState := SEQ_START_PREPARE;
+                tonStepTimer(IN := FALSE);
+            ELSE
+                o_sSequenceStatus := 'Low inlet pressure';
+                iSequenceState := SEQ_FAULT;
+            END_IF
+        END_IF
+        
+    SEQ_START_PREPARE:
+        (* Подготовка к пуску *)
+        o_sSequenceStatus := 'Preparing for start';
+        
+        tonStepTimer(IN := TRUE, PT := T#2S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_START_VALVE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_START_VALVE:
+        (* Открытие задвижки (если есть) *)
+        o_sSequenceStatus := 'Opening valve';
+        
+        (* Здесь должна быть команда на открытие задвижки *)
+        xValveOpen := TRUE;
+        
+        tonStepTimer(IN := TRUE, PT := T#5S);
+        
+        IF tonStepTimer.Q THEN
+            (* Проверка открытия задвижки *)
+            IF xValveOpen THEN
+                iSequenceState := SEQ_START_PUMP;
+                tonStepTimer(IN := FALSE);
+            ELSE
+                o_sSequenceStatus := 'Valve open timeout';
+                iSequenceState := SEQ_FAULT;
+            END_IF
+        END_IF
+        
+    SEQ_START_PUMP:
+        (* Запуск насоса *)
+        o_sSequenceStatus := 'Starting pump';
+        
+        (* Команда пуска передается в основной блок управления *)
+        
+        tonStepTimer(IN := TRUE, PT := T#3S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_START_STABILIZE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_START_STABILIZE:
+        (* Стабилизация параметров *)
+        o_sSequenceStatus := 'Stabilizing flow and pressure';
+        
+        (* Проверка стабильности давления и расхода *)
+        xPressureStable := (i_stProcessData.rDifferentialPressure > 0.5) AND
+                          (i_stProcessData.rDifferentialPressure < i_stConfig.rNominalHead / 10.197 * 1.5);
+        
+        xFlowStable := (i_stProcessData.rFlow > i_stConfig.rMinFlow * 0.8) AND
+                      (i_stProcessData.rFlow < i_stConfig.rMaxFlow * 1.2);
+        
+        tonStepTimer(IN := TRUE, PT := i_stConfig.tStartupTime);
+        
+        IF tonStepTimer.Q THEN
+            IF xPressureStable AND xFlowStable THEN
+                iSequenceState := SEQ_RUNNING;
+                o_xSequenceComplete := TRUE;
+                tonStepTimer(IN := FALSE);
+            ELSE
+                o_sSequenceStatus := 'Стабилизация не удалась';
+                iSequenceState := SEQ_FAULT;
+            END_IF
+        END_IF
+        
+    SEQ_RUNNING:
+        (* Нормальная работа *)
+        o_xSequenceActive := FALSE;
+        o_xSequenceComplete := TRUE;
+        o_sSequenceStatus := 'Работа';
+
+        IF xStopSequence THEN
+            iSequenceState := SEQ_STOP_PREPARE;
+            xStopSequence := FALSE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_STOP_PREPARE:
+        (* Подготовка к останову *)
+        o_xSequenceActive := TRUE;
+        o_xSequenceComplete := FALSE;
+        o_sSequenceStatus := 'Подготовка к останову';
+        
+        (* Проверка условий останова *)
+        
+        tonStepTimer(IN := TRUE, PT := T#1S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_STOP_REDUCE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_STOP_REDUCE:
+        (* Снижение производительности *)
+        o_sSequenceStatus := 'Reducing speed';
+        
+        (* Здесь можно плавно снижать частоту *)
+        
+        tonStepTimer(IN := TRUE, PT := T#3S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_STOP_PUMP;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_STOP_PUMP:
+        (* Останов насоса *)
+        o_sSequenceStatus := 'Stopping pump';
+        
+        (* Команда останова передается в основной блок *)
+        
+        tonStepTimer(IN := TRUE, PT := i_stConfig.tStopTime);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_STOP_VALVE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_STOP_VALVE:
+        (* Закрытие задвижки *)
+        o_sSequenceStatus := 'Closing valve';
+        
+        (* Здесь должна быть команда на закрытие задвижки *)
+        xValveOpen := FALSE;
+        
+        tonStepTimer(IN := TRUE, PT := T#5S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_STOP_COMPLETE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_STOP_COMPLETE:
+        (* Останов завершен *)
+        o_xSequenceActive := FALSE;
+        o_xSequenceComplete := TRUE;
+        o_sSequenceStatus := 'Stop complete';
+        
+        tonStepTimer(IN := TRUE, PT := T#2S);
+        
+        IF tonStepTimer.Q THEN
+            iSequenceState := SEQ_IDLE;
+            tonStepTimer(IN := FALSE);
+        END_IF
+        
+    SEQ_FAULT:
+        (* Ошибка последовательности *)
+        o_xSequenceActive := FALSE;
+        o_xSequenceComplete := FALSE;
+        o_xSequenceFault := TRUE;
+        
+        (* Сброс по команде *)
+        IF i_xStop THEN
+            iSequenceState := SEQ_IDLE;
+        END_IF
+        
+END_CASE
+
+(* Выходы *)
+o_eSequenceState := iSequenceState;
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,18 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_DeviceControl\/FrequencyConverter' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK
+
+VAR_INPUT
+    stModbusData: ST_FC_ModbusData;    (* Данные от Modbus *)
+    xModbusOK: BOOL;                   (* Качество связи *)   
+END_VAR
+
+VAR_OUTPUT
+    stStatus: ST_FC_Status;            (* Декодированный статус *)
+    stProcessData: ST_FC_ProcessData;  (* Обработанные данные процесса *)
+END_VAR
+
+
+END_FUNCTION_BLOCK

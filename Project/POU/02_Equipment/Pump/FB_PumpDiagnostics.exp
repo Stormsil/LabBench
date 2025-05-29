@@ -1,0 +1,212 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_PumpDiagnostics
+VAR_INPUT
+    i_stProcessData : ST_PumpProcessData;   (* Данные процесса *)
+    i_stConfig : ST_PumpConfig;             (* Конфигурация *)
+    i_xRunning : BOOL;                      (* Насос работает *)
+    i_xStart : BOOL;                        (* Импульс пуска *)
+    i_xMaintenanceReset : BOOL;             (* Сброс счетчика ТО *)
+END_VAR
+
+VAR_OUTPUT
+    o_stDiagnostics : ST_PumpDiagnostics;  (* Структура диагностики *)
+END_VAR
+
+VAR
+    (* Таймеры *)
+    tonRunTimer : TON;
+    tonHourTimer : TON;
+    rtStartDetect : R_TRIG;
+    
+    (* Счетчики и накопители *)
+    dwRunSeconds : DWORD;
+    dwTotalStarts : DWORD;
+    iStartsThisHour : INT;
+    rTotalVolume : REAL;
+    rTotalEnergy : REAL;
+    
+    (* Расчетные параметры *)
+    rEfficiency : REAL;
+    rSpecificPower : REAL;
+    rFlowDeviation : REAL;
+    rPressureDeviation : REAL;
+    
+    (* Средние значения *)
+    rSumEfficiency : REAL;
+    rSumPower : REAL;
+    dwEfficiencyCount : DWORD;
+    
+    (* Диагностические флаги *)
+    xLowEfficiency : BOOL;
+    xHighVibration : BOOL;
+    xMechanicalWear : BOOL;
+    
+    (* Вспомогательные *)
+    xFirstScan : BOOL := TRUE;
+    dwLastHour : DWORD;
+    rPowerFactor : REAL := 0.85;
+END_VAR
+
+(* Тело функционального блока *)
+
+(* Инициализация *)
+IF xFirstScan THEN
+    xFirstScan := FALSE;
+    dwRunSeconds := 0;
+    dwTotalStarts := 0;
+    rTotalVolume := 0.0;
+    rTotalEnergy := 0.0;
+END_IF
+
+(* ========== СЧЕТЧИКИ НАРАБОТКИ ========== *)
+
+(* Счетчик времени работы *)
+IF i_xRunning THEN
+    tonRunTimer(IN := TRUE, PT := T#1S);
+    IF tonRunTimer.Q THEN
+        dwRunSeconds := dwRunSeconds + 1;
+        tonRunTimer(IN := FALSE);
+        
+        (* Накопление объема перекачки м? *)
+        rTotalVolume := rTotalVolume + i_stProcessData.rFlow / 3600.0;
+        
+        (* Накопление энергии кВт?ч *)
+        rTotalEnergy := rTotalEnergy + i_stProcessData.rPower / 3600.0;
+    END_IF
+ELSE
+    tonRunTimer(IN := FALSE);
+END_IF
+
+(* Перевод в часы *)
+o_stDiagnostics.dwRunningHours := dwRunSeconds / 3600;
+
+(* Счетчик пусков *)
+rtStartDetect(CLK := i_xStart);
+IF rtStartDetect.Q THEN
+    dwTotalStarts := dwTotalStarts + 1;
+    iStartsThisHour := iStartsThisHour + 1;
+END_IF
+o_stDiagnostics.dwStartCount := dwTotalStarts;
+
+(* Сброс счетчика пусков каждый час *)
+tonHourTimer(IN := TRUE, PT := T#1H);
+IF tonHourTimer.Q THEN
+    iStartsThisHour := 0;
+    tonHourTimer(IN := FALSE);
+END_IF
+o_stDiagnostics.iStartsThisHour := iStartsThisHour;
+
+(* ========== РАСЧЕТ КПД НАСОСА ========== *)
+
+IF i_xRunning AND 
+   (i_stProcessData.rFlow > 0.1) AND 
+   (i_stProcessData.rPower > 0.1) THEN
+   
+    (* Гидравлическая мощность: P_гидр = ? * g * Q * H / 3600 *)
+    (* где ? = 1000 кг/м?, g = 9.81 м/с? *)
+    (* P_гидр [кВт] = Q [м?/ч] * H [м] * 9.81 / 3600 *)
+    rEfficiency := (i_stProcessData.rFlow * i_stProcessData.rHead * 9.81 / 3600) / 
+                   i_stProcessData.rPower * 100.0;
+    
+    (* Ограничение диапазона *)
+    IF rEfficiency > 100.0 THEN
+        rEfficiency := 100.0;
+    ELSIF rEfficiency < 0.0 THEN
+        rEfficiency := 0.0;
+    END_IF
+    
+    (* Накопление для среднего *)
+    rSumEfficiency := rSumEfficiency + rEfficiency;
+    dwEfficiencyCount := dwEfficiencyCount + 1;
+ELSE
+    rEfficiency := 0.0;
+END_IF
+
+o_stDiagnostics.rEfficiency := rEfficiency;
+
+(* Средний КПД *)
+IF dwEfficiencyCount > 0 THEN
+    o_stDiagnostics.rAvgEfficiency := rSumEfficiency / DWORD_TO_REAL(dwEfficiencyCount);
+ELSE
+    o_stDiagnostics.rAvgEfficiency := 0.0;
+END_IF
+
+(* ========== УДЕЛЬНАЯ МОЩНОСТЬ ========== *)
+
+IF i_stProcessData.rFlow > 0.1 THEN
+    rSpecificPower := i_stProcessData.rPower / i_stProcessData.rFlow;
+ELSE
+    rSpecificPower := 0.0;
+END_IF
+o_stDiagnostics.rSpecificPower := rSpecificPower;
+
+(* ========== ДИАГНОСТИКА СОСТОЯНИЯ ========== *)
+
+(* Низкий КПД *)
+xLowEfficiency := (rEfficiency < i_stConfig.rLowEfficiencyLimit) AND 
+                  (rEfficiency > 0.0) AND 
+                  i_xRunning;
+
+(* Отклонение от номинальной рабочей точки *)
+IF i_xRunning AND (i_stProcessData.rFrequency > 45.0) THEN
+    rFlowDeviation := ABS(i_stProcessData.rFlow - i_stConfig.rNominalFlow) / 
+                      i_stConfig.rNominalFlow * 100.0;
+    rPressureDeviation := ABS(i_stProcessData.rHead - i_stConfig.rNominalHead) / 
+                          i_stConfig.rNominalHead * 100.0;
+ELSE
+    rFlowDeviation := 0.0;
+    rPressureDeviation := 0.0;
+END_IF
+
+(* Определение механического износа *)
+(* Если КПД падает со временем или отклонение от характеристики *)
+xMechanicalWear := xLowEfficiency OR 
+                   ((rFlowDeviation > 20.0) AND (rPressureDeviation > 20.0));
+
+(* Косвенное определение вибрации по пульсациям тока *)
+(* Здесь упрощенно - в реальности нужен анализ *)
+xHighVibration := FALSE;
+
+(* ========== ЗАПОЛНЕНИЕ ВЫХОДНОЙ СТРУКТУРЫ ========== *)
+
+(* Флаги диагностики *)
+o_stDiagnostics.xDryRun := FALSE;  (* Заполняется в FB_PumpProtection *)
+o_stDiagnostics.xClosedValve := FALSE;  (* Заполняется в FB_PumpProtection *)
+o_stDiagnostics.xCavitation := FALSE;  (* Заполняется в FB_PumpProtection *)
+o_stDiagnostics.xOverload := FALSE;  (* Заполняется в FB_PumpProtection *)
+o_stDiagnostics.xLowFlow := i_stProcessData.rFlow < i_stConfig.rMinFlow;
+o_stDiagnostics.xHighFlow := i_stProcessData.rFlow > i_stConfig.rMaxFlow;
+o_stDiagnostics.xLowInletPressure := i_stProcessData.rPressureInlet < i_stConfig.rMinInletPressure;
+o_stDiagnostics.xHighOutletPressure := i_stProcessData.rPressureOutlet > i_stConfig.rMaxOutletPressure;
+o_stDiagnostics.xLowEfficiency := xLowEfficiency;
+o_stDiagnostics.xMechanicalWear := xMechanicalWear;
+
+(* Тренды *)
+o_stDiagnostics.rAvgPower := rSumPower / DWORD_TO_REAL(dwEfficiencyCount);
+o_stDiagnostics.rTotalVolume := rTotalVolume;
+
+(* Формирование диагностического кода *)
+o_stDiagnostics.wDiagnosticCode := 0;
+
+IF xLowEfficiency THEN
+    o_stDiagnostics.wDiagnosticCode := o_stDiagnostics.wDiagnosticCode OR 16#0001;
+END_IF
+IF xMechanicalWear THEN
+    o_stDiagnostics.wDiagnosticCode := o_stDiagnostics.wDiagnosticCode OR 16#0002;
+END_IF
+
+(* Формирование диагностического сообщения *)
+IF o_stDiagnostics.wDiagnosticCode = 0 THEN
+    o_stDiagnostics.sDiagnosticMessage := 'Normal operation';
+ELSIF xLowEfficiency THEN
+    o_stDiagnostics.sDiagnosticMessage := 'Low pump efficiency';
+ELSIF xMechanicalWear THEN
+    o_stDiagnostics.sDiagnosticMessage := 'Mechanical wear detected';
+ELSE
+    o_stDiagnostics.sDiagnosticMessage := 'Check diagnostics';
+END_IF
+
+END_FUNCTION_BLOCK

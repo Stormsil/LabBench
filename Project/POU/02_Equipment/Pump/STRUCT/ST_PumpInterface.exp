@@ -1,0 +1,24 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* Интерфейс насоса *)
+TYPE ST_PumpInterface :
+STRUCT
+    (* Входы *)
+    stCommands : ST_PumpCommands;
+    stProcessData : ST_PumpProcessData;
+    stFCModbusIn : ST_FC_ModbusInterface;
+    xExternalInterlock : BOOL;
+    
+    (* Выходы *)
+    xReady : BOOL;
+    xRunning : BOOL;
+    xFault : BOOL;
+    xWarning : BOOL;
+    eState : E_PumpState;
+    eMode : E_PumpMode;
+    eFaultClass : E_PumpFaultClass;
+    stDiagnostics : ST_PumpDiagnostics;
+    stFCModbusOut : ST_FC_ModbusInterface;
+END_STRUCT
+END_TYPE

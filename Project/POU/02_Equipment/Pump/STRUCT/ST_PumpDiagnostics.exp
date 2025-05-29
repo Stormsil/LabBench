@@ -1,0 +1,32 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* Диагностика насоса *)
+TYPE ST_PumpDiagnostics :
+STRUCT
+    (* Флаги состояния *)
+    xDryRun : BOOL;                (* Сухой ход *)
+    xClosedValve : BOOL;           (* Закрытая задвижка *)
+    xCavitation : BOOL;            (* Кавитация *)
+    xOverload : BOOL;              (* Перегрузка *)
+    xLowFlow : BOOL;              (* Низкий расход *)
+    xHighFlow : BOOL;             (* Высокий расход *)
+    xLowInletPressure : BOOL;     (* Низкое давление на входе *)
+    xHighOutletPressure : BOOL;   (* Высокое давление на выходе *)
+    xLowEfficiency : BOOL;        (* Низкий КПД *)
+    xMechanicalWear : BOOL;       (* Механический износ *)
+    
+    (* Счетчики и наработка *)
+    dwRunningHours : DWORD;        (* Наработка, часы *)
+    dwStartCount : DWORD;          (* Количество пусков *)
+    
+    (* Тренды *)
+    rAvgEfficiency : REAL;         (* Средний КПД *)
+    rAvgPower : REAL;              (* Средняя мощность *)
+    rTotalVolume : REAL;           (* Общий объем перекачки *)
+    
+    (* Коды диагностики *)
+    wDiagnosticCode : WORD;        (* Код диагностики *)
+    sDiagnosticMessage : STRING(80); (* Сообщение диагностики *)
+END_STRUCT
+END_TYPE

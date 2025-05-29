@@ -1,0 +1,235 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_PumpProtection
+VAR_INPUT
+    i_stProcessData : ST_PumpProcessData;   (* Данные процесса *)
+    i_stConfig : ST_PumpConfig;             (* Конфигурация *)
+    i_xRunning : BOOL;                      (* Насос работает *)
+    i_xExternalInterlock : BOOL;            (* Внешняя блокировка *)
+    i_xLowLevelInterlock : BOOL;            (* Блокировка по уровню *)
+END_VAR
+
+VAR_OUTPUT
+    o_xInterlock : BOOL;                    (* Общая блокировка *)
+    o_eFaultClass : E_PumpFaultClass;      (* Класс ошибки *)
+    o_wFaultCode : WORD;                    (* Код ошибки *)
+END_VAR
+
+VAR
+    (* Флаги защит *)
+    xDryRun : BOOL;
+    xClosedValve : BOOL;
+    xCavitation : BOOL;
+    xOverload : BOOL;
+    xLowFlow : BOOL;
+    xHighFlow : BOOL;
+    xLowInletPressure : BOOL;
+    xHighOutletPressure : BOOL;
+    xHighDifferentialPressure : BOOL;
+    xMechanicalFailure : BOOL;
+    
+    (* Таймеры защит *)
+    tonDryRun : TON;
+    tonClosedValve : TON;
+    tonCavitation : TON;
+    tonOverload : TON;
+    tonLowFlow : TON;
+    tonHighFlow : TON;
+    tonStartupBypass : TON;
+    
+    (* Пороговые значения *)
+    rDryRunFlowThreshold : REAL;
+    rClosedValveFlowThreshold : REAL;
+    rOverloadCurrentThreshold : REAL;
+    rCavitationThreshold : REAL;
+    
+    (* Внутренние переменные *)
+    xStartupBypass : BOOL;
+    wFaultCode : WORD;
+    eFaultClass : E_PumpFaultClass;
+END_VAR
+
+(* Тело функционального блока *)
+
+(* Обход защит при пуске *)
+IF i_xRunning THEN
+    tonStartupBypass(IN := TRUE, PT := i_stConfig.tStartupTime);
+    xStartupBypass := NOT tonStartupBypass.Q;
+ELSE
+    tonStartupBypass(IN := FALSE);
+    xStartupBypass := FALSE;
+END_IF
+
+(* Расчет пороговых значений *)
+rDryRunFlowThreshold := i_stConfig.rDryRunFlowLimit;
+rClosedValveFlowThreshold := i_stConfig.rClosedValveFlowLimit;
+rOverloadCurrentThreshold := i_stConfig.rNominalCurrent * i_stConfig.rOverloadCurrentLimit / 100.0;
+rCavitationThreshold := i_stConfig.rCavitationNPSH;
+
+(* ========== ЗАЩИТА ОТ СУХОГО ХОДА ========== *)
+(* Условия: насос работает, низкий расход, низкое давление на выходе, низкий ток *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    IF (i_stProcessData.rFlow < rDryRunFlowThreshold) AND
+       (i_stProcessData.rDifferentialPressure < 0.5) AND
+       (i_stProcessData.rCurrent < i_stConfig.rNominalCurrent * 0.7) THEN
+        tonDryRun(IN := TRUE, PT := i_stConfig.tDryRunDelay);
+    ELSE
+        tonDryRun(IN := FALSE);
+    END_IF
+ELSE
+    tonDryRun(IN := FALSE);
+END_IF
+xDryRun := tonDryRun.Q;
+
+(* ========== ЗАЩИТА ОТ РАБОТЫ НА ЗАКРЫТУЮ ЗАДВИЖКУ ========== *)
+(* Условия: насос работает, очень низкий расход, высокое давление, повышенный ток *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    IF (i_stProcessData.rFlow < rClosedValveFlowThreshold) AND
+       (i_stProcessData.rDifferentialPressure > i_stConfig.rNominalHead * 0.8 / 10.197) AND
+       (i_stProcessData.rCurrent > i_stConfig.rNominalCurrent * 0.9) THEN
+        tonClosedValve(IN := TRUE, PT := i_stConfig.tClosedValveDelay);
+    ELSE
+        tonClosedValve(IN := FALSE);
+    END_IF
+ELSE
+    tonClosedValve(IN := FALSE);
+END_IF
+xClosedValve := tonClosedValve.Q;
+
+(* ========== ЗАЩИТА ОТ КАВИТАЦИИ ========== *)
+(* Условия: низкий NPSHa, пульсации тока/давления *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    IF i_stProcessData.rNPSHa < rCavitationThreshold THEN
+        tonCavitation(IN := TRUE, PT := i_stConfig.tCavitationDelay);
+    ELSE
+        tonCavitation(IN := FALSE);
+    END_IF
+ELSE
+    tonCavitation(IN := FALSE);
+END_IF
+xCavitation := tonCavitation.Q;
+
+(* ========== ЗАЩИТА ОТ ПЕРЕГРУЗКИ ========== *)
+(* Условия: высокий ток, высокая мощность *)
+IF i_xRunning THEN
+    IF (i_stProcessData.rCurrent > rOverloadCurrentThreshold) OR
+       (i_stProcessData.rPower > i_stConfig.rNominalPower * 1.15) THEN
+        tonOverload(IN := TRUE, PT := i_stConfig.tOverloadDelay);
+    ELSE
+        tonOverload(IN := FALSE);
+    END_IF
+ELSE
+    tonOverload(IN := FALSE);
+END_IF
+xOverload := tonOverload.Q;
+
+(* ========== ЗАЩИТА ПО НИЗКОМУ РАСХОДУ ========== *)
+(* Не путать с сухим ходом - здесь просто низкий расход *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    IF (i_stProcessData.rFlow < i_stConfig.rMinFlow) AND
+       (i_stProcessData.rFlow > rDryRunFlowThreshold) THEN
+        tonLowFlow(IN := TRUE, PT := T#30S);
+    ELSE
+        tonLowFlow(IN := FALSE);
+    END_IF
+ELSE
+    tonLowFlow(IN := FALSE);
+END_IF
+xLowFlow := tonLowFlow.Q;
+
+(* ========== ЗАЩИТА ПО ВЫСОКОМУ РАСХОДУ ========== *)
+(* Возможная утечка или разрыв трубопровода *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    IF i_stProcessData.rFlow > i_stConfig.rMaxFlow THEN
+        tonHighFlow(IN := TRUE, PT := T#10S);
+    ELSE
+        tonHighFlow(IN := FALSE);
+    END_IF
+ELSE
+    tonHighFlow(IN := FALSE);
+END_IF
+xHighFlow := tonHighFlow.Q;
+
+(* ========== ЗАЩИТА ПО ДАВЛЕНИЮ ========== *)
+(* Низкое давление на входе *)
+xLowInletPressure := i_stProcessData.rPressureInlet < i_stConfig.rMinInletPressure;
+
+(* Высокое давление на выходе *)
+xHighOutletPressure := i_stProcessData.rPressureOutlet > i_stConfig.rMaxOutletPressure;
+
+(* Высокий перепад давления *)
+xHighDifferentialPressure := i_stProcessData.rDifferentialPressure > 
+                            (i_stConfig.rNominalHead * 1.2 / 10.197);
+
+(* ========== ОПРЕДЕЛЕНИЕ МЕХАНИЧЕСКОЙ НЕИСПРАВНОСТИ ========== *)
+(* Аномальное соотношение параметров *)
+IF i_xRunning AND NOT xStartupBypass THEN
+    (* Проверка характеристики насоса *)
+    (* Если при номинальной частоте расход и напор сильно отличаются от номинала *)
+    IF (i_stProcessData.rFrequency > i_stConfig.rNominalSpeed * 0.9 / 60.0) AND
+       ((i_stProcessData.rFlow < i_stConfig.rNominalFlow * 0.5) OR
+        (i_stProcessData.rHead < i_stConfig.rNominalHead * 0.5)) AND
+       NOT xClosedValve AND NOT xDryRun THEN
+        xMechanicalFailure := TRUE;
+    ELSE
+        xMechanicalFailure := FALSE;
+    END_IF
+ELSE
+    xMechanicalFailure := FALSE;
+END_IF
+
+(* ========== ФОРМИРОВАНИЕ КОДА ОШИБКИ ========== *)
+wFaultCode := 0;
+eFaultClass := PUMP_FAULT_NONE;
+
+(* Приоритет ошибок *)
+IF xDryRun THEN
+    wFaultCode := wFaultCode OR 16#0001;
+    eFaultClass := PUMP_FAULT_DRY_RUN;
+ELSIF xClosedValve THEN
+    wFaultCode := wFaultCode OR 16#0002;
+    eFaultClass := PUMP_FAULT_CLOSED_VALVE;
+ELSIF xCavitation THEN
+    wFaultCode := wFaultCode OR 16#0004;
+    eFaultClass := PUMP_FAULT_CAVITATION;
+ELSIF xOverload THEN
+    wFaultCode := wFaultCode OR 16#0008;
+    eFaultClass := PUMP_FAULT_OVERLOAD;
+ELSIF xLowFlow THEN
+    wFaultCode := wFaultCode OR 16#0010;
+    eFaultClass := PUMP_FAULT_LOW_FLOW;
+ELSIF xHighFlow THEN
+    wFaultCode := wFaultCode OR 16#0020;
+    eFaultClass := PUMP_FAULT_HIGH_FLOW;
+ELSIF xLowInletPressure THEN
+    wFaultCode := wFaultCode OR 16#0040;
+    eFaultClass := PUMP_FAULT_LOW_PRESSURE;
+ELSIF xHighOutletPressure THEN
+    wFaultCode := wFaultCode OR 16#0080;
+    eFaultClass := PUMP_FAULT_HIGH_PRESSURE;
+ELSIF xMechanicalFailure THEN
+    wFaultCode := wFaultCode OR 16#0100;
+    eFaultClass := PUMP_FAULT_MECHANICAL;
+ELSIF i_xExternalInterlock OR i_xLowLevelInterlock THEN
+    wFaultCode := wFaultCode OR 16#0200;
+    eFaultClass := PUMP_FAULT_EXTERNAL;
+END_IF
+
+(* ========== ФОРМИРОВАНИЕ БЛОКИРОВКИ ========== *)
+o_xInterlock := xDryRun OR 
+                xClosedValve OR 
+                xCavitation OR 
+                xOverload OR 
+                xLowInletPressure OR 
+                xHighOutletPressure OR 
+                xMechanicalFailure OR
+                i_xExternalInterlock OR 
+                i_xLowLevelInterlock;
+
+(* Выходы *)
+o_wFaultCode := wFaultCode;
+o_eFaultClass := eFaultClass;
+
+END_FUNCTION_BLOCK

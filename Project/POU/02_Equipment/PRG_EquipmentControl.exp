@@ -1,0 +1,4 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)

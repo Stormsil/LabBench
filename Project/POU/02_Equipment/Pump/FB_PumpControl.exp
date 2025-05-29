@@ -1,0 +1,220 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_PumpControl
+VAR_INPUT
+    i_stCommands : ST_PumpCommands;     (* Команды управления *)
+    i_eMode : E_PumpMode;                (* Текущий режим *)
+    i_xInterlock : BOOL;                 (* Блокировка от защит *)
+    i_xFCReady : BOOL;                   (* ПЧ готов *)
+    i_xFCRunning : BOOL;                 (* ПЧ работает *)
+    i_xFCFault : BOOL;                   (* Ошибка ПЧ *)
+END_VAR
+
+VAR_OUTPUT
+    o_eState : E_PumpState;              (* Состояние насоса *)
+    o_xFCStart : BOOL;                   (* Команда пуска ПЧ *)
+    o_xReady : BOOL;                     (* Готов к работе *)
+    o_xRunning : BOOL;                   (* Работает *)
+    o_xFault : BOOL;                     (* Авария *)
+END_VAR
+
+VAR
+    (* Машина состояний *)
+    eState : E_PumpState;
+    eStatePrev : E_PumpState;
+    
+    (* Таймеры *)
+    tonStateTimer : TON;
+    tonStartDelay : TON;
+    tonStopDelay : TON;
+    
+    (* Флаги *)
+    xStartCmd : BOOL;
+    xStopCmd : BOOL;
+    xStartRising : BOOL;
+    xStopRising : BOOL;
+    xStartPrev : BOOL;
+    xStopPrev : BOOL;
+    
+    (* Внутренние переменные *)
+    xStartPermissive : BOOL;
+    xRunPermissive : BOOL;
+    tStateTime : TIME;
+END_VAR
+
+(* Тело функционального блока *)
+
+(* Детектирование фронтов команд *)
+xStartRising := i_stCommands.xStart AND NOT xStartPrev;
+xStopRising := i_stCommands.xStop AND NOT xStopPrev;
+xStartPrev := i_stCommands.xStart;
+xStopPrev := i_stCommands.xStop;
+
+(* Определение команд в зависимости от режима *)
+CASE i_eMode OF
+    PUMP_MODE_OOS:
+        (* Выведен из работы - команды блокированы *)
+        xStartCmd := FALSE;
+        xStopCmd := TRUE;
+        
+    PUMP_MODE_LOCAL:
+        (* Местное управление - команды от ПЧ *)
+        xStartCmd := FALSE;
+        xStopCmd := TRUE;
+        
+    PUMP_MODE_MANUAL:
+        (* Ручное управление - команды от оператора *)
+        xStartCmd := i_stCommands.xStart;
+        xStopCmd := i_stCommands.xStop;
+        
+    PUMP_MODE_AUTO, PUMP_MODE_CASCADE:
+        (* Автоматическое управление *)
+        xStartCmd := i_stCommands.xStart;
+        xStopCmd := i_stCommands.xStop;
+END_CASE
+
+(* Определение разрешений *)
+xStartPermissive := NOT i_xInterlock AND 
+                   i_xFCReady AND 
+                   (i_eMode >= PUMP_MODE_MANUAL) AND
+                   NOT i_xFCFault;
+
+xRunPermissive := NOT i_xInterlock AND 
+                 (i_eMode >= PUMP_MODE_MANUAL);
+
+(* Таймер времени в состоянии *)
+IF eState <> eStatePrev THEN
+    tonStateTimer(IN := FALSE);
+    eStatePrev := eState;
+END_IF
+tonStateTimer(IN := TRUE, PT := T#24H);
+tStateTime := tonStateTimer.ET;
+
+(* Машина состояний *)
+CASE eState OF
+    
+    PUMP_STATE_OOS:
+        (* Выведен из работы *)
+        o_xFCStart := FALSE;
+        
+        IF i_eMode > PUMP_MODE_OOS THEN
+            eState := PUMP_STATE_IDLE;
+        END_IF
+        
+    PUMP_STATE_IDLE:
+        (* Ожидание *)
+        o_xFCStart := FALSE;
+        
+        IF i_eMode = PUMP_MODE_OOS THEN
+            eState := PUMP_STATE_OOS;
+        ELSIF i_xFCReady AND NOT i_xFCFault THEN
+            eState := PUMP_STATE_READY;
+        END_IF
+        
+    PUMP_STATE_READY:
+        (* Готов к пуску *)
+        o_xFCStart := FALSE;
+        
+        (* Переход в запуск *)
+        IF xStartCmd AND xStartPermissive THEN
+            eState := PUMP_STATE_STARTING;
+            tonStartDelay(IN := FALSE);
+        END_IF
+        
+        (* Проверка условий готовности *)
+        IF NOT i_xFCReady OR i_xFCFault THEN
+            eState := PUMP_STATE_IDLE;
+        ELSIF i_eMode = PUMP_MODE_OOS THEN
+            eState := PUMP_STATE_OOS;
+        END_IF
+        
+    PUMP_STATE_STARTING:
+        (* Запуск *)
+        tonStartDelay(IN := TRUE, PT := T#2S);
+        
+        (* Задержка перед пуском *)
+        IF tonStartDelay.Q THEN
+            o_xFCStart := TRUE;
+            
+            (* Проверка обратной связи *)
+            IF i_xFCRunning THEN
+                eState := PUMP_STATE_RUNNING;
+            ELSIF tStateTime > T#10S THEN
+                (* Таймаут пуска *)
+                eState := PUMP_STATE_FAULT;
+            END_IF
+        END_IF
+        
+        (* Прерывание пуска *)
+        IF xStopCmd OR NOT xStartPermissive THEN
+            eState := PUMP_STATE_READY;
+            o_xFCStart := FALSE;
+        END_IF
+        
+    PUMP_STATE_RUNNING:
+        (* Работа *)
+        o_xFCStart := TRUE;
+        
+        (* Команда останова *)
+        IF xStopCmd OR NOT xRunPermissive THEN
+            eState := PUMP_STATE_STOPPING;
+            tonStopDelay(IN := FALSE);
+        END_IF
+        
+        (* Проверка обратной связи *)
+        IF NOT i_xFCRunning AND tStateTime > T#2S THEN
+            eState := PUMP_STATE_FAULT;
+        END_IF
+        
+        (* Переход в OOS *)
+        IF i_eMode = PUMP_MODE_OOS THEN
+            eState := PUMP_STATE_STOPPING;
+        END_IF
+        
+    PUMP_STATE_STOPPING:
+        (* Останов *)
+        o_xFCStart := FALSE;
+        tonStopDelay(IN := TRUE, PT := T#1S);
+        
+        (* Ожидание останова *)
+        IF tonStopDelay.Q THEN
+            IF NOT i_xFCRunning THEN
+                IF i_eMode = PUMP_MODE_OOS THEN
+                    eState := PUMP_STATE_OOS;
+                ELSE
+                    eState := PUMP_STATE_READY;
+                END_IF
+            ELSIF tStateTime > T#15S THEN
+                (* Таймаут останова *)
+                eState := PUMP_STATE_FAULT;
+            END_IF
+        END_IF
+        
+    PUMP_STATE_FAULT:
+        (* Авария *)
+        o_xFCStart := FALSE;
+        
+        (* Сброс ошибки *)
+        IF i_stCommands.xReset THEN
+            IF i_eMode = PUMP_MODE_OOS THEN
+                eState := PUMP_STATE_OOS;
+            ELSE
+                eState := PUMP_STATE_IDLE;
+            END_IF
+        END_IF
+        
+    PUMP_STATE_TEST:
+        (* Тестирование - для будущего использования *)
+        o_xFCStart := FALSE;
+        
+END_CASE
+
+(* Выходы *)
+o_eState := eState;
+o_xReady := (eState = PUMP_STATE_READY);
+o_xRunning := (eState = PUMP_STATE_RUNNING);
+o_xFault := (eState = PUMP_STATE_FAULT) OR i_xFCFault;
+
+END_FUNCTION_BLOCK

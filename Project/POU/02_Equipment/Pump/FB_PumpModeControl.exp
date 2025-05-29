@@ -1,0 +1,152 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_PumpModeControl
+VAR_INPUT
+    i_stCommands : ST_PumpCommands;     (* Команды управления *)
+    i_eCurrentState : E_PumpState;       (* Текущее состояние насоса *)
+    i_xFCReady : BOOL;                   (* ПЧ готов *)
+    i_xFCFault : BOOL;                   (* Ошибка ПЧ *)
+END_VAR
+
+VAR_OUTPUT
+    o_eMode : E_PumpMode;                (* Активный режим *)
+    o_xModeValid : BOOL;                 (* Режим валиден *)
+    o_rActiveSetpoint : REAL;            (* Активная уставка *)
+END_VAR
+
+VAR
+    (* Текущий режим *)
+    eMode : E_PumpMode;
+    eModePrev : E_PumpMode;
+    eModeRequest : E_PumpMode;
+    
+    (* Таймеры *)
+    tonModeChangeDelay : TON;
+    
+    (* Флаги *)
+    xModeChangeRequest : BOOL;
+    xModeChangeAllowed : BOOL;
+    xModeChangeActive : BOOL;
+    
+    (* Уставки *)
+    rManualSetpoint : REAL;
+    rAutoSetpoint : REAL;
+    rActiveSetpoint : REAL;
+END_VAR
+
+(* Тело функционального блока *)
+
+(* Запрос на изменение режима *)
+eModeRequest := i_stCommands.eMode;
+
+IF eModeRequest <> eMode THEN
+    xModeChangeRequest := TRUE;
+ELSE
+    xModeChangeRequest := FALSE;
+END_IF
+
+(* Проверка возможности смены режима *)
+xModeChangeAllowed := FALSE;
+
+CASE i_eCurrentState OF
+    PUMP_STATE_OOS, 
+    PUMP_STATE_IDLE, 
+    PUMP_STATE_READY:
+        (* Смена режима разрешена в состояниях покоя *)
+        xModeChangeAllowed := TRUE;
+        
+    PUMP_STATE_FAULT:
+        (* В аварии можно только в OOS *)
+        IF eModeRequest = PUMP_MODE_OOS THEN
+            xModeChangeAllowed := TRUE;
+        END_IF
+        
+    PUMP_STATE_RUNNING:
+        (* При работе можно менять между MANUAL/AUTO/CASCADE *)
+        IF (eMode >= PUMP_MODE_MANUAL) AND (eModeRequest >= PUMP_MODE_MANUAL) THEN
+            xModeChangeAllowed := TRUE;
+        (* Или переходить в OOS для аварийного останова *)
+        ELSIF eModeRequest = PUMP_MODE_OOS THEN
+            xModeChangeAllowed := TRUE;
+        END_IF
+        
+    ELSE
+        xModeChangeAllowed := FALSE;
+END_CASE
+
+(* Выполнение смены режима *)
+IF xModeChangeRequest AND xModeChangeAllowed THEN
+    tonModeChangeDelay(IN := TRUE, PT := T#1S);
+    xModeChangeActive := TRUE;
+ELSE
+    tonModeChangeDelay(IN := FALSE);
+END_IF
+
+(* Применение нового режима после задержки *)
+IF tonModeChangeDelay.Q AND xModeChangeActive THEN
+    eMode := eModeRequest;
+    xModeChangeActive := FALSE;
+    tonModeChangeDelay(IN := FALSE);
+END_IF
+
+(* Проверка валидности режима *)
+o_xModeValid := TRUE;
+
+CASE eMode OF
+    PUMP_MODE_OOS:
+        (* Всегда валиден *)
+        o_xModeValid := TRUE;
+        
+    PUMP_MODE_LOCAL:
+        (* Валиден если ПЧ поддерживает местное управление *)
+        o_xModeValid := i_xFCReady;
+        
+    PUMP_MODE_MANUAL:
+        (* Валиден если есть связь с ПЧ *)
+        o_xModeValid := i_xFCReady AND NOT i_xFCFault;
+        
+    PUMP_MODE_AUTO, PUMP_MODE_CASCADE:
+        (* Валиден если есть связь и автоматика активна *)
+        o_xModeValid := i_xFCReady AND NOT i_xFCFault;
+END_CASE
+
+(* Если режим не валиден - переход в OOS *)
+IF NOT o_xModeValid AND (eMode <> PUMP_MODE_OOS) THEN
+    eMode := PUMP_MODE_OOS;
+END_IF
+
+(* Выбор активной уставки в зависимости от режима *)
+CASE eMode OF
+    PUMP_MODE_OOS, PUMP_MODE_LOCAL:
+        (* Нет уставки *)
+        rActiveSetpoint := 0.0;
+        
+    PUMP_MODE_MANUAL:
+        (* Ручная уставка *)
+        rActiveSetpoint := i_stCommands.rManualSetpoint;
+        
+    PUMP_MODE_AUTO, PUMP_MODE_CASCADE:
+        (* Автоматическая уставка *)
+        rActiveSetpoint := i_stCommands.rAutoSetpoint;
+END_CASE
+
+(* Безударный переход при смене режима *)
+IF eMode <> eModePrev THEN
+    (* При переходе между MANUAL и AUTO/CASCADE *)
+    IF (eModePrev = PUMP_MODE_MANUAL) AND (eMode >= PUMP_MODE_AUTO) THEN
+        (* Начинаем с текущей ручной уставки *)
+        rAutoSetpoint := rManualSetpoint;
+    ELSIF (eModePrev >= PUMP_MODE_AUTO) AND (eMode = PUMP_MODE_MANUAL) THEN
+        (* Начинаем с текущей автоматической уставки *)
+        rManualSetpoint := rAutoSetpoint;
+    END_IF
+    eModePrev := eMode;
+END_IF
+
+(* Выходы *)
+o_eMode := eMode;
+o_rActiveSetpoint := rActiveSetpoint;
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,203 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/02_Equipment\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK FB_Pump
+VAR_INPUT
+    (* Команды управления *)
+    i_xStart : BOOL;                    (* Команда пуска *)
+    i_xStop : BOOL;                     (* Команда останова *)
+    i_xReset : BOOL;                    (* Сброс ошибок *)
+    i_eMode : E_PumpMode;               (* Режим работы *)
+    
+    (* Задания *)
+    i_rManualSetpoint : REAL;           (* Ручная уставка частоты, Гц *)
+    i_rAutoSetpoint : REAL;             (* Автоматическая уставка *)
+    
+    (* Данные процесса *)
+    i_rPressureInlet : REAL;            (* Давление на входе, бар *)
+    i_rPressureOutlet : REAL;           (* Давление на выходе, бар *)
+    i_rFlow : REAL;                     (* Расход, м?/ч *)
+    i_rTemperature : REAL;              (* Температура, ?C *)
+    
+    (* Интерфейс Modbus ПЧ *)
+    i_stFCModbus : ST_FC_ModbusInterface;
+    
+    (* Внешние блокировки *)
+    i_xExternalInterlock : BOOL;        (* Внешняя блокировка *)
+    i_xLowLevelInterlock : BOOL;        (* Блокировка по уровню *)
+    
+    (* Конфигурация *)
+    i_stConfig : ST_PumpConfig;         (* Конфигурация насоса *)
+END_VAR
+
+VAR_OUTPUT
+    (* Состояние *)
+    o_xReady : BOOL;                    (* Готов к работе *)
+    o_xRunning : BOOL;                  (* Работает *)
+    o_xFault : BOOL;                    (* Авария *)
+    o_xWarning : BOOL;                  (* Предупреждение *)
+    
+    (* Режим и состояние *)
+    o_eState : E_PumpState;             (* Состояние насоса *)
+    o_eMode : E_PumpMode;               (* Текущий режим *)
+    o_eFaultClass : E_PumpFaultClass;  (* Класс ошибки *)
+    
+    (* Диагностика *)
+    o_stDiagnostics : ST_PumpDiagnostics;
+    
+    (* Интерфейс Modbus ПЧ *)
+    o_stFCModbus : ST_FC_ModbusInterface;
+    
+    (* Полный интерфейс *)
+    o_stInterface : ST_PumpInterface;
+END_VAR
+
+VAR
+    (* Внутренние функциональные блоки *)
+    fbPumpControl : FB_PumpControl;
+    fbFrequencyConverter : FB_FrequencyConverter_AFD;
+    fbPumpProtection : FB_PumpProtection;
+    fbPumpDiagnostics : FB_PumpDiagnostics;
+    fbPumpModeControl : FB_PumpModeControl;
+    fbPumpSequencer : FB_PumpSequencer;
+    
+    (* Внутренние данные *)
+    stProcessData : ST_PumpProcessData;
+    stCommands : ST_PumpCommands;
+    stFCInterface : ST_FC_Interface;
+    xFCStart : BOOL;
+    xFCInterlock : BOOL;
+    rFCSetpoint : REAL;
+    
+    (* Флаги *)
+    xFirstScan : BOOL := TRUE;
+END_VAR
+
+(* Тело функционального блока FB_Pump *)
+
+(* Инициализация при первом скане *)
+IF xFirstScan THEN
+    xFirstScan := FALSE;
+    (* Проверка конфигурации *)
+    IF i_stConfig.rNominalFlow = 0.0 THEN
+        (* Установка значений по умолчанию если не заданы *)
+        i_stConfig.rNominalFlow := 100.0;
+        i_stConfig.rNominalHead := 50.0;
+        i_stConfig.rNominalPower := 15.0;
+        i_stConfig.rNominalCurrent := 30.0;
+        i_stConfig.rNominalSpeed := 2950.0;
+    END_IF
+END_IF
+
+(* Сбор данных процесса *)
+stProcessData.rPressureInlet := i_rPressureInlet;
+stProcessData.rPressureOutlet := i_rPressureOutlet;
+stProcessData.rFlow := i_rFlow;
+stProcessData.rTemperature := i_rTemperature;
+
+(* Расчет производных параметров *)
+stProcessData.rDifferentialPressure := stProcessData.rPressureOutlet - stProcessData.rPressureInlet;
+stProcessData.rHead := stProcessData.rDifferentialPressure * 10.197; (* бар в метры *)
+
+(* Расчет доступного кавитационного запаса NPSHa *)
+(* NPSHa = (Pвх - Pпар) * 10.2 + Hвх - hпот *)
+(* Упрощенно для воды при 20?C *)
+stProcessData.rNPSHa := (stProcessData.rPressureInlet - 0.023) * 10.2;
+
+(* Формирование команд *)
+stCommands.xStart := i_xStart;
+stCommands.xStop := i_xStop;
+stCommands.xReset := i_xReset;
+stCommands.eMode := i_eMode;
+stCommands.rManualSetpoint := i_rManualSetpoint;
+stCommands.rAutoSetpoint := i_rAutoSetpoint;
+
+(* Управление режимами работы *)
+fbPumpModeControl(
+    i_stCommands := stCommands,
+    i_eCurrentState := fbPumpControl.o_eState,
+    i_xFCReady := fbFrequencyConverter.xReady,
+    i_xFCFault := fbFrequencyConverter.xFault,
+    o_eMode := o_eMode,
+    o_xModeValid := ,
+    o_rActiveSetpoint := rFCSetpoint
+);
+
+(* Защиты насоса *)
+fbPumpProtection(
+    i_stProcessData := stProcessData,
+    i_stConfig := i_stConfig,
+    i_xRunning := fbFrequencyConverter.xRunning,
+    i_xExternalInterlock := i_xExternalInterlock,
+    i_xLowLevelInterlock := i_xLowLevelInterlock,
+    o_xInterlock := xFCInterlock,
+    o_eFaultClass := o_eFaultClass,
+    o_wFaultCode := 
+);
+
+(* Основная логика управления *)
+fbPumpControl(
+    i_stCommands := stCommands,
+    i_eMode := o_eMode,
+    i_xInterlock := xFCInterlock,
+    i_xFCReady := fbFrequencyConverter.xReady,
+    i_xFCRunning := fbFrequencyConverter.xRunning,
+    i_xFCFault := fbFrequencyConverter.xFault,
+    o_eState := o_eState,
+    o_xFCStart := xFCStart,
+    o_xReady := o_xReady,
+    o_xRunning := o_xRunning,
+    o_xFault := o_xFault
+);
+
+(* Управление частотным преобразователем *)
+fbFrequencyConverter(
+    xStart := xFCStart,
+    xStop := NOT xFCStart,
+    xReset := stCommands.xReset,
+    xEnable := o_eMode <> PUMP_MODE_OOS,
+    rSetpointHz := rFCSetpoint,
+    eMode := FC_MODE_MODBUS,
+    xExternalInterlock := xFCInterlock,
+    stConfig := ,  (* Конфигурация ПЧ *)
+    (* Подключение Modbus *)
+    i_stModbusData := i_stFCModbus,
+    o_stModbusData := o_stFCModbus
+);
+
+(* Получение данных от ПЧ *)
+stProcessData.rFrequency := fbFrequencyConverter.rFrequency;
+stProcessData.rCurrent := fbFrequencyConverter.rCurrent;
+stProcessData.rSpeed := fbFrequencyConverter.rSpeed;
+stProcessData.rPower := fbFrequencyConverter.rPower;
+
+(* Диагностика насоса *)
+fbPumpDiagnostics(
+    i_stProcessData := stProcessData,
+    i_stConfig := i_stConfig,
+    i_xRunning := o_xRunning,
+    i_xStart := stCommands.xStart AND NOT o_xRunning,
+    o_stDiagnostics := o_stDiagnostics
+);
+
+(* Определение предупреждений *)
+o_xWarning := o_stDiagnostics.xLowEfficiency OR 
+              o_stDiagnostics.xMechanicalWear;
+
+(* Заполнение полного интерфейса *)
+o_stInterface.stCommands := stCommands;
+o_stInterface.stProcessData := stProcessData;
+o_stInterface.stFCModbusIn := i_stFCModbus;
+o_stInterface.xExternalInterlock := i_xExternalInterlock;
+o_stInterface.xReady := o_xReady;
+o_stInterface.xRunning := o_xRunning;
+o_stInterface.xFault := o_xFault;
+o_stInterface.xWarning := o_xWarning;
+o_stInterface.eState := o_eState;
+o_stInterface.eMode := o_eMode;
+o_stInterface.eFaultClass := o_eFaultClass;
+o_stInterface.stDiagnostics := o_stDiagnostics;
+o_stInterface.stFCModbusOut := o_stFCModbus;
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,17 @@
+TYPE ST_FC_ModbusInterface :
+STRUCT
+    (* Чтение *)
+    wStatusWord : WORD;
+    wFaultCode : WORD;
+    wFrequency : WORD;
+    wCurrent : WORD;
+    wVoltage : WORD;
+    wSpeed : WORD;
+    wDCLinkVoltage : WORD;
+    wTemperature : WORD;
+    
+    (* Запись *)
+    wCommandWord : WORD;
+    wFreqSetpoint : WORD;
+END_STRUCT
+END_TYPE

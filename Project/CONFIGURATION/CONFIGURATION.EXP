@@ -1,0 +1,1958 @@
+
+PLC_CONFIGURATION
+_GLOBAL
+_VERSION: 3
+_AUTOADR: 1
+_CHECKADR: 1
+_SAVECONFIGFILESINPROJECT: 1
+_END_GLOBAL
+
+_MODULE: '3S'
+_SECTION_NAME: 'Root'
+_INDEX_IN_PARENT: '-1'
+_MODULE_NAME: 'PLC160'
+_NODE_ID: -1
+_IECIN: %IB0
+_IECOUT: %QB0
+_IECDIAG: %MB0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'PLC160_v2'
+_PARAM 2: 0, '1'
+_PARAM 3: 0, '1000'
+_END_PARAMETER
+
+_MODULE: '3S'
+_SECTION_NAME: 'OWEN_ID531'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Fast Counters'
+_NODE_ID: 0
+_IECIN: %IB0
+_IECOUT: %QB0
+_IECDIAG: %MB0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Fast Counters'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordInput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'Counter_Flowmeter_PumpOut1'
+_COMMENT: 'Счетчик импульсов расходомера после насоса 1'
+_CHANNEL_MODE: 'I'
+_IECADR: %IW0.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'WordInput'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: 'Counter_Flowmeter_PumpOut2'
+_COMMENT: 'Счетчик импульсов расходомера после насоса 2'
+_CHANNEL_MODE: 'I'
+_IECADR: %IW0.1
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'WordInput'
+_INDEX_IN_PARENT: '3'
+_SYMBOLIC_NAME: 'Counter_Flowmeter_Pipe'
+_COMMENT: 'Счетчик импульсов ЭМ расходомера в трубопроводе'
+_CHANNEL_MODE: 'I'
+_IECADR: %IW0.2
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'WordInput'
+_INDEX_IN_PARENT: '4'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Fast counter 4'
+_CHANNEL_MODE: 'I'
+_IECADR: %IW0.3
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID130'
+_INDEX_IN_PARENT: '2'
+_MODULE_NAME: 'Discrete inputs'
+_NODE_ID: 1
+_IECIN: %IB1
+_IECOUT: %QB1
+_IECDIAG: %MB1
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Discrete inputs'
+_PARAM 2: 0, '10'
+_PARAM 3: 0, '12'
+_PARAM 9: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'ByteInput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: ''
+_COMMENT: '8 discrete inputs'
+_CHANNEL_MODE: 'I'
+_IECADR: %IB1.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_BIT 0: %IX1.0.0 'DI_Level_Low' 'Сигнал поплавкового датчика уровня "Низкий"'
+_BIT 1: %IX1.0.1 'DI_Level_Mid' 'Сигнал поплавкового датчика уровня "Средний"'
+_BIT 2: %IX1.0.2 'DI_Level_Hight' 'Сигнал датчика уровня "Высокий"'
+_BIT 3: %IX1.0.3 'DI_AlarmButton' 'Сигнал кнопки аварийного останова'
+_BIT 4: %IX1.0.4 '' 'Bit 4'
+_BIT 5: %IX1.0.5 '' 'Bit 5'
+_BIT 6: %IX1.0.6 '' 'Bit 6'
+_BIT 7: %IX1.0.7 '' 'Bit 7'
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'ByteInput'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: ''
+_COMMENT: '4 discrete inputs'
+_CHANNEL_MODE: 'I'
+_IECADR: %IB1.1
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_BIT 0: %IX1.1.0 '' 'Bit 0'
+_BIT 1: %IX1.1.1 '' 'Bit 1'
+_BIT 2: %IX1.1.2 '' 'Bit 2'
+_BIT 3: %IX1.1.3 '' 'Bit 3'
+_BIT 4: %IX1.1.4 '' 'Bit 4'
+_BIT 5: %IX1.1.5 '' 'Bit 5'
+_BIT 6: %IX1.1.6 '' 'Bit 6'
+_BIT 7: %IX1.1.7 '' 'Bit 7'
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'OWEN_ID570'
+_INDEX_IN_PARENT: '3'
+_MODULE_NAME: 'Fast discrete outputs'
+_NODE_ID: 2
+_IECIN: %IB2
+_IECOUT: %QB2
+_IECDIAG: %MB2
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Fast discrete outputs'
+_PARAM 2: 0, 'FALSE'
+_PARAM 3: 0, 'FALSE'
+_PARAM 4: 0, 'FALSE'
+_PARAM 5: 0, 'FALSE'
+_PARAM 10: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'BitOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Fast discrete output 1'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QX2.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'BitOutput'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Fast discrete output 2'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QX2.1
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'BitOutput'
+_INDEX_IN_PARENT: '3'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Fast discrete output 3'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QX2.2
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'BitOutput'
+_INDEX_IN_PARENT: '4'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Fast discrete output 4'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QX2.3
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID131'
+_INDEX_IN_PARENT: '4'
+_MODULE_NAME: 'Discrete outputs'
+_NODE_ID: 3
+_IECIN: %IB3
+_IECOUT: %QB3
+_IECDIAG: %MB3
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Discrete outputs'
+_PARAM 2: 0, '0'
+_PARAM 3: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'ByteOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: ''
+_COMMENT: '8 discrete outputs'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QB3.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_BIT 0: %QX3.0.0 'DO_Open_Valve' 'Управление электромагнитным клапаном '
+_BIT 1: %QX3.0.1 '' 'Bit 1'
+_BIT 2: %QX3.0.2 '' 'Bit 2'
+_BIT 3: %QX3.0.3 'DO_Alarm_Lamp' 'Управление лампой "Авария"'
+_BIT 4: %QX3.0.4 '' 'Bit 4'
+_BIT 5: %QX3.0.5 '' 'Bit 5'
+_BIT 6: %QX3.0.6 '' 'Bit 6'
+_BIT 7: %QX3.0.7 '' 'Bit 7'
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'ByteOutput'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: ''
+_COMMENT: '8 discrete outputs'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QB3.1
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_BIT 0: %QX3.1.0 '' 'Bit 0'
+_BIT 1: %QX3.1.1 '' 'Bit 1'
+_BIT 2: %QX3.1.2 '' 'Bit 2'
+_BIT 3: %QX3.1.3 '' 'Bit 3'
+_BIT 4: %QX3.1.4 '' 'Bit 4'
+_BIT 5: %QX3.1.5 '' 'Bit 5'
+_BIT 6: %QX3.1.6 '' 'Bit 6'
+_BIT 7: %QX3.1.7 '' 'Bit 7'
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID125'
+_INDEX_IN_PARENT: '5'
+_MODULE_NAME: 'Fast analog inputs'
+_NODE_ID: 4
+_IECIN: %IB4
+_IECOUT: %QB4
+_IECDIAG: %MB4
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog inputs'
+_PARAM 2: 0, '50Hz 2Por'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'AI_Pressure_KIE1'
+_COMMENT: 'Давление столба воды в КИЕ 1'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.0
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '0'
+_PARAM 7: 0, '16000'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: 'AI_Pressure_KIE2'
+_COMMENT: 'Давление в КИЕ 2'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.1
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '0'
+_PARAM 7: 0, '250'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '3'
+_SYMBOLIC_NAME: 'AI_Pressure_Pipe'
+_COMMENT: 'Давление в трубопроводе'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.2
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '0'
+_PARAM 7: 0, '600'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '4'
+_SYMBOLIC_NAME: 'AI_Pressure_PumpIn1'
+_COMMENT: 'Давление перед насосом 1'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.3
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '-100'
+_PARAM 7: 0, '400'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '5'
+_SYMBOLIC_NAME: 'AI_Pressure_PumpOut1'
+_COMMENT: 'Давление после насоса 1'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.4
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '-100'
+_PARAM 7: 0, '400'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '6'
+_SYMBOLIC_NAME: 'AI_Pressure_PumpIn2'
+_COMMENT: 'Давление перед насосом 2'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.5
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '-100'
+_PARAM 7: 0, '400'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '7'
+_SYMBOLIC_NAME: 'AI_Pressure_PumpOut2'
+_COMMENT: 'Давление после насоса 2'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.6
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '-100'
+_PARAM 7: 0, '400'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatInputP'
+_INDEX_IN_PARENT: '8'
+_SYMBOLIC_NAME: 'AI_Position_PropValve'
+_COMMENT: 'Положение пропорционального клапана'
+_CHANNEL_MODE: 'I'
+_IECADR: %IR4.7
+
+_PARAMETER
+_PARAM 1: 0, 'Fast analog input'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '4'
+_PARAM 4: 0, 'Avr 4'
+_PARAM 5: 0, '100'
+_PARAM 6: 0, '0'
+_PARAM 7: 0, '100'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'WordInput'
+_INDEX_IN_PARENT: '9'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'AI read time (10ms)'
+_CHANNEL_MODE: 'I'
+_IECADR: %IW4.8
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID126'
+_INDEX_IN_PARENT: '6'
+_MODULE_NAME: 'Analog outputs'
+_NODE_ID: 5
+_IECIN: %IB5
+_IECOUT: %QB5
+_IECDIAG: %MB5
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Analog outputs'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutputP'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'AO_SetPosition_PropValve'
+_COMMENT: 'Задание положения пропорционального клапана'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QR5.0
+
+_PARAMETER
+_PARAM 1: 0, 'Analog output'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '0'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutputP'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'AO #2'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QR5.1
+
+_PARAMETER
+_PARAM 1: 0, 'Analog output'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '0.0'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutputP'
+_INDEX_IN_PARENT: '3'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'AO #3'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QR5.2
+
+_PARAMETER
+_PARAM 1: 0, 'Analog output'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '0.0'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutputP'
+_INDEX_IN_PARENT: '4'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'AO #4'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QR5.3
+
+_PARAMETER
+_PARAM 1: 0, 'Analog output'
+_PARAM 2: 0, '4-20 mA'
+_PARAM 3: 0, '0.0'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID103'
+_INDEX_IN_PARENT: '7'
+_MODULE_NAME: 'Special input'
+_NODE_ID: 6
+_IECIN: %IB6
+_IECOUT: %QB6
+_IECDIAG: %MB6
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Special input'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'BitInput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Special input'
+_CHANNEL_MODE: 'I'
+_IECADR: %IX6.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID104'
+_INDEX_IN_PARENT: '8'
+_MODULE_NAME: 'Special output'
+_NODE_ID: 7
+_IECIN: %IB7
+_IECOUT: %QB7
+_IECDIAG: %MB7
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'Special output'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'BitOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: ''
+_COMMENT: 'Special output'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QX7.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'MODBUS_MASTER_ID450'
+_INDEX_IN_PARENT: '9'
+_MODULE_NAME: 'ModBus (Master)'
+_NODE_ID: 8
+_IECIN: %IB8
+_IECOUT: %QB8
+_IECDIAG: %MB8
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'ModBus (Master)'
+_PARAM 2: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'DWordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'MB_LastSlaveAddress'
+_COMMENT: 'Last address'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QD8.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '2'
+_SYMBOLIC_NAME: 'MB_LastSlaveError'
+_COMMENT: 'Last error'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.1
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_MODULE: '3S'
+_SECTION_NAME: 'COM1_USART'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'RS-485-1'
+_NODE_ID: 0
+_IECIN: %IB8.0
+_IECOUT: %QB8.0
+_IECDIAG: %MB8.0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: ''
+
+_PARAMETER
+_PARAM 1: 0, 'RS-485-1'
+_PARAM 2: 0, '9600'
+_PARAM 3: 0, 'NO PARITY CHECK'
+_PARAM 4: 0, '8 bits'
+_PARAM 5: 0, 'One stop bit'
+_PARAM 6: 0, 'RS485'
+_PARAM 7: 0, 'RTU'
+_PARAM 8: 0, '0'
+_PARAM 9: 0, 'No'
+_END_PARAMETER
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2000'
+_INDEX_IN_PARENT: '2'
+_MODULE_NAME: 'Universal Modbus device'
+_NODE_ID: 1
+_IECIN: %IB8.1
+_IECOUT: %QB8.1
+_IECDIAG: %MB8.1
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Измеритель-регулятор ТРМ10'
+
+_PARAMETER
+_PARAM 1: 0, 'Universal Modbus device'
+_PARAM 2: 0, '10:0:0:223'
+_PARAM 3: 0, '150'
+_PARAM 4: 0, '502'
+_PARAM 5: 0, 'Serial'
+_PARAM 6: 0, '3'
+_PARAM 7: 0, 'By poll time'
+_PARAM 8: 0, '100'
+_PARAM 9: 0, 'No'
+_PARAM 10: 0, '3'
+_PARAM 11: 0, 'Trace_mode'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'ComChannel'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_MB_Command'
+_COMMENT: 'Command (0xff - Start)'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QB8.1.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 0
+_IECIN: %IB8.1.0
+_IECOUT: %QB8.1.0
+_IECDIAG: %MB8.1.0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Статус прибора (битовая маска)'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '4104'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_Status_RD'
+_COMMENT: 'Статус прибора (битовая маска)'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.1.0.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2007'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Real input module'
+_NODE_ID: 1
+_IECIN: %IB8.1.1
+_IECOUT: %QB8.1.1
+_IECDIAG: %MB8.1.1
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Выходная мощность на Выходе 1'
+
+_PARAMETER
+_PARAM 1: 0, 'float input module'
+_PARAM 2: 0, '4111'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_PowerOut1_RD'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QD8.1.1.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2007'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Real input module'
+_NODE_ID: 2
+_IECIN: %IB8.1.2
+_IECOUT: %QB8.1.2
+_IECDIAG: %MB8.1.2
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Измеренная величина на входе 1 (после функции)'
+
+_PARAMETER
+_PARAM 1: 0, 'float input module'
+_PARAM 2: 0, '4105'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_ValueIn1_RD'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QD8.1.2.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 3
+_IECIN: %IB8.1.3
+_IECOUT: %QB8.1.3
+_IECDIAG: %MB8.1.3
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Режим работы прибора'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '4113'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_CtrlMode_RD'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.1.3.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2007'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Real input module'
+_NODE_ID: 4
+_IECIN: %IB8.1.4
+_IECOUT: %QB8.1.4
+_IECDIAG: %MB8.1.4
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Текущее значение уставки регулятора'
+
+_PARAMETER
+_PARAM 1: 0, 'float input module'
+_PARAM 2: 0, '4109'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_SPCurrent_RD'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QD8.1.4.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2004'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register output module'
+_NODE_ID: 5
+_IECIN: %IB8.1.5
+_IECOUT: %QB8.1.5
+_IECDIAG: %MB8.1.5
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Удаленная перезагрузка прибора'
+
+_PARAMETER
+_PARAM 1: 0, 'Register'
+_PARAM 2: 0, '4114'
+_PARAM 3: 0, 'Preset singl register (0x06)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_ResetDevice_WR'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.1.5.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2008'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Real output module'
+_NODE_ID: 6
+_IECIN: %IB8.1.6
+_IECOUT: %QB8.1.6
+_IECDIAG: %MB8.1.6
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Уставка регулятора на Выходе 1'
+
+_PARAMETER
+_PARAM 1: 0, 'float output module'
+_PARAM 2: 0, '4107'
+_PARAM 3: 0, 'Preset multiple Registers (0x10)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'FloatOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'TRM_SetPoint_WR'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QD8.1.6.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2000'
+_INDEX_IN_PARENT: '2'
+_MODULE_NAME: 'Universal Modbus device'
+_NODE_ID: 2
+_IECIN: %IB8.2
+_IECOUT: %QB8.2
+_IECDIAG: %MB8.2
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Преобразователь частоты 1'
+
+_PARAMETER
+_PARAM 1: 0, 'Universal Modbus device'
+_PARAM 2: 0, '10:0:0:223'
+_PARAM 3: 0, '150'
+_PARAM 4: 0, '502'
+_PARAM 5: 0, 'Serial'
+_PARAM 6: 0, '1'
+_PARAM 7: 0, 'By poll time'
+_PARAM 8: 0, '100'
+_PARAM 9: 0, 'No'
+_PARAM 10: 0, '3'
+_PARAM 11: 0, 'Trace_mode'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'ComChannel'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MB_Command'
+_COMMENT: 'Command (0xff - Start)'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QB8.2.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2004'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register output module'
+_NODE_ID: 0
+_IECIN: %IB8.2.0
+_IECOUT: %QB8.2.0
+_IECDIAG: %MB8.2.0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Командное слово'
+
+_PARAMETER
+_PARAM 1: 0, 'Register'
+_PARAM 2: 0, '4097'
+_PARAM 3: 0, 'Preset singl register (0x06)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_CommandWord_WR'
+_COMMENT: 'Управление частотным преобразователем'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.0.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2004'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register output module'
+_NODE_ID: 1
+_IECIN: %IB8.2.1
+_IECOUT: %QB8.2.1
+_IECDIAG: %MB8.2.1
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Задание частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register'
+_PARAM 2: 0, '4098'
+_PARAM 3: 0, 'Preset singl register (0x06)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_FreqSetpoint_WR'
+_COMMENT: 'Задание частоты'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.1.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 2
+_IECIN: %IB8.2.2
+_IECOUT: %QB8.2.2
+_IECDIAG: %MB8.2.2
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Слово состояния'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '8192'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_StatusWord_RD'
+_COMMENT: 'Состояние преобразователя'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.2.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 3
+_IECIN: %IB8.2.3
+_IECOUT: %QB8.2.3
+_IECDIAG: %MB8.2.3
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Сообщение отказа'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '8193'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_ErrorCode_RD'
+_COMMENT: 'Код ошибки'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.3.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 4
+_IECIN: %IB8.2.4
+_IECOUT: %QB8.2.4
+_IECDIAG: %MB8.2.4
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходная частота'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53248'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorFrequency_RD'
+_COMMENT: 'd-00'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.4.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 5
+_IECIN: %IB8.2.5
+_IECOUT: %QB8.2.5
+_IECDIAG: %MB8.2.5
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходной ток'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53249'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorCurrent_RD'
+_COMMENT: 'd-01'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.5.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 6
+_IECIN: %IB8.2.6
+_IECOUT: %QB8.2.6
+_IECDIAG: %MB8.2.6
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходное напряжение'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53250'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorVoltage_RD'
+_COMMENT: 'd-02'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.6.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 7
+_IECIN: %IB8.2.7
+_IECOUT: %QB8.2.7
+_IECDIAG: %MB8.2.7
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Скорость вращения электродвигателя'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53251'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorRotationSpeed_RD'
+_COMMENT: 'd-03'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.7.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 8
+_IECIN: %IB8.2.8
+_IECOUT: %QB8.2.8
+_IECDIAG: %MB8.2.8
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Напряжение звена постоянного тока'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53252'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorDCLinkVoltage_RD'
+_COMMENT: 'd-04'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.8.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 9
+_IECIN: %IB8.2.9
+_IECOUT: %QB8.2.9
+_IECDIAG: %MB8.2.9
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Входное напряжение преобразователя частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53253'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorInputVoltage_RD'
+_COMMENT: 'd-05'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.9.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 10
+_IECIN: %IB8.2.10
+_IECOUT: %QB8.2.10
+_IECDIAG: %MB8.2.10
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Текущее задание частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53254'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorFreqSetpoint_RD'
+_COMMENT: 'd-06'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.10.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 11
+_IECIN: %IB8.2.11
+_IECOUT: %QB8.2.11
+_IECDIAG: %MB8.2.11
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Температура'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53259'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorTemperature_RD'
+_COMMENT: 'd-11'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.11.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 12
+_IECIN: %IB8.2.12
+_IECOUT: %QB8.2.12
+_IECDIAG: %MB8.2.12
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Запись первой неисправности'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53271'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorFirstErrRec'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.12.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 13
+_IECIN: %IB8.2.13
+_IECOUT: %QB8.2.13
+_IECDIAG: %MB8.2.13
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Запись второй неисправности'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53272'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC1_MonitorSecondErrRec'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.2.13.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2000'
+_INDEX_IN_PARENT: '2'
+_MODULE_NAME: 'Universal Modbus device'
+_NODE_ID: 3
+_IECIN: %IB8.3
+_IECOUT: %QB8.3
+_IECDIAG: %MB8.3
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Преобразователь частоты 2'
+
+_PARAMETER
+_PARAM 1: 0, 'Universal Modbus device'
+_PARAM 2: 0, '10:0:0:223'
+_PARAM 3: 0, '150'
+_PARAM 4: 0, '502'
+_PARAM 5: 0, 'Serial'
+_PARAM 6: 0, '2'
+_PARAM 7: 0, 'By poll time'
+_PARAM 8: 0, '100'
+_PARAM 9: 0, 'No'
+_PARAM 10: 0, '3'
+_PARAM 11: 0, 'Trace_mode'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'ComChannel'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MB_Command'
+_COMMENT: 'Command (0xff - Start)'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QB8.3.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2004'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register output module'
+_NODE_ID: 0
+_IECIN: %IB8.3.0
+_IECOUT: %QB8.3.0
+_IECDIAG: %MB8.3.0
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Командное слово'
+
+_PARAMETER
+_PARAM 1: 0, 'Register'
+_PARAM 2: 0, '4097'
+_PARAM 3: 0, 'Preset singl register (0x06)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_CommandWord_WR'
+_COMMENT: 'Управление частотным преобразователем'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.0.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2004'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register output module'
+_NODE_ID: 1
+_IECIN: %IB8.3.1
+_IECOUT: %QB8.3.1
+_IECDIAG: %MB8.3.1
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Задание частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register'
+_PARAM 2: 0, '4098'
+_PARAM 3: 0, 'Preset singl register (0x06)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_FreqSetpoint_WR'
+_COMMENT: 'Задание частоты'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.1.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 2
+_IECIN: %IB8.3.2
+_IECOUT: %QB8.3.2
+_IECDIAG: %MB8.3.2
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Слово состояния'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '8192'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_StatusWord_RD'
+_COMMENT: 'Состояние преобразователя'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.2.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 3
+_IECIN: %IB8.3.3
+_IECOUT: %QB8.3.3
+_IECDIAG: %MB8.3.3
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Сообщение отказа'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '8193'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_ErrorCode_RD'
+_COMMENT: 'Код ошибки'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.3.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 4
+_IECIN: %IB8.3.4
+_IECOUT: %QB8.3.4
+_IECDIAG: %MB8.3.4
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходная частота'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53248'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorFrequency_RD'
+_COMMENT: 'd-00'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.4.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 5
+_IECIN: %IB8.3.5
+_IECOUT: %QB8.3.5
+_IECDIAG: %MB8.3.5
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходной ток'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53249'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorCurrent_RD'
+_COMMENT: 'd-01'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.5.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 6
+_IECIN: %IB8.3.6
+_IECOUT: %QB8.3.6
+_IECDIAG: %MB8.3.6
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Выходное напряжение'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53250'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorVoltage_RD'
+_COMMENT: 'd-02'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.6.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 7
+_IECIN: %IB8.3.7
+_IECOUT: %QB8.3.7
+_IECDIAG: %MB8.3.7
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Скорость вращения электродвигателя'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53251'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorRotationSpeed_RD'
+_COMMENT: 'd-03'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.7.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 8
+_IECIN: %IB8.3.8
+_IECOUT: %QB8.3.8
+_IECDIAG: %MB8.3.8
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Напряжение звена постоянного тока'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53252'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorDCLinkVoltage_RD'
+_COMMENT: 'd-04'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.8.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 9
+_IECIN: %IB8.3.9
+_IECOUT: %QB8.3.9
+_IECDIAG: %MB8.3.9
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Входное напряжение преобразователя частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53253'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorInputVoltage_RD'
+_COMMENT: 'd-05'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.9.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 10
+_IECIN: %IB8.3.10
+_IECOUT: %QB8.3.10
+_IECDIAG: %MB8.3.10
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Текущее задание частоты'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53254'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorFreqSetpoint_RD'
+_COMMENT: 'd-06'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.10.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 11
+_IECIN: %IB8.3.11
+_IECOUT: %QB8.3.11
+_IECDIAG: %MB8.3.11
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Температура'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53259'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorTemperature_RD'
+_COMMENT: 'd-11'
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.11.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 12
+_IECIN: %IB8.3.12
+_IECOUT: %QB8.3.12
+_IECDIAG: %MB8.3.12
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Запись первой неисправности'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53271'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorFirstErrRec'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.12.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+
+_MODULE: '3S'
+_SECTION_NAME: 'ID2003'
+_INDEX_IN_PARENT: '1'
+_MODULE_NAME: 'Register input module'
+_NODE_ID: 13
+_IECIN: %IB8.3.13
+_IECOUT: %QB8.3.13
+_IECDIAG: %MB8.3.13
+_DOWNLOAD: 1
+_EXCLUDEFROMAUTOADR: 0
+_COMMENT: 'Мониторинг параметров / Запись второй неисправности'
+
+_PARAMETER
+_PARAM 1: 0, 'Register input module'
+_PARAM 2: 0, '53272'
+_PARAM 3: 0, 'Read holding Registers  (0x03)'
+_PARAM 8: 0, 'No'
+_END_PARAMETER
+
+_CHANNEL
+_SECTION_NAME: 'WordOutput'
+_INDEX_IN_PARENT: '1'
+_SYMBOLIC_NAME: 'FC2_MonitorSecondErrRec'
+_COMMENT: ''
+_CHANNEL_MODE: 'Q'
+_IECADR: %QW8.3.13.0
+
+_PARAMETER
+_PARAM 1: 0, 'Enter name'
+_END_PARAMETER
+_END_CHANNEL
+_END_MODULE
+_END_MODULE
+_END_MODULE
+_END_MODULE
+PLC_END

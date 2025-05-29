@@ -1,0 +1,40 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* Конфигурация насоса *)
+TYPE ST_PumpConfig :
+STRUCT
+    (* Номинальные параметры насоса *)
+    rNominalFlow : REAL := 100.0;          (* м?/ч *)
+    rNominalHead : REAL := 50.0;           (* м *)
+    rNominalPower : REAL := 15.0;          (* кВт *)
+    rNominalCurrent : REAL := 30.0;        (* А *)
+    rNominalSpeed : REAL := 2950.0;        (* об/мин *)
+    
+    (* Рабочие диапазоны *)
+    rMinFlow : REAL := 10.0;               (* м?/ч *)
+    rMaxFlow : REAL := 120.0;              (* м?/ч *)
+    rMinInletPressure : REAL := 0.5;       (* бар *)
+    rMaxOutletPressure : REAL := 10.0;     (* бар *)
+    rMinFrequency : REAL := 20.0;          (* Гц *)
+    rMaxFrequency : REAL := 50.0;          (* Гц *)
+    
+    (* Уставки защит *)
+    rDryRunFlowLimit : REAL := 5.0;        (* м?/ч *)
+    rClosedValveFlowLimit : REAL := 2.0;   (* м?/ч *)
+    rCavitationNPSH : REAL := 3.0;         (* м *)
+    rOverloadCurrentLimit : REAL := 110.0;  (* % от номинала *)
+    rLowEfficiencyLimit : REAL := 60.0;    (* % *)
+    
+    (* Таймеры защит *)
+    tDryRunDelay : TIME := T#10S;
+    tClosedValveDelay : TIME := T#30S;
+    tCavitationDelay : TIME := T#5S;
+    tOverloadDelay : TIME := T#10S;
+    tStartupTime : TIME := T#20S;
+    tStopTime : TIME := T#10S;
+    
+    (* Эксплуатационные параметры *)
+    iMaxStartsPerHour : INT := 6;          (* Макс пусков в час *)
+END_STRUCT
+END_TYPE

@@ -1,0 +1,16 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* Состояния насоса *)
+TYPE E_PumpState :
+(
+    PUMP_STATE_OOS := 0,           (* Выведен из работы *)
+    PUMP_STATE_IDLE := 1,          (* Ожидание *)
+    PUMP_STATE_READY := 2,         (* Готов к пуску *)
+    PUMP_STATE_STARTING := 3,      (* Запуск *)
+    PUMP_STATE_RUNNING := 4,       (* Работа *)
+    PUMP_STATE_STOPPING := 5,      (* Останов *)
+    PUMP_STATE_FAULT := 6,         (* Авария *)
+    PUMP_STATE_TEST := 7           (* Тестирование *)
+);
+END_TYPE
