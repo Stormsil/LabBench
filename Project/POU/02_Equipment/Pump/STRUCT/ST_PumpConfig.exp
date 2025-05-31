@@ -5,11 +5,11 @@
 TYPE ST_PumpConfig :
 STRUCT
     (* Номинальные параметры насоса *)
-    rNominalFlow : REAL := 100.0;          (* м?/ч *)
-    rNominalHead : REAL := 50.0;           (* м *)
-    rNominalPower : REAL := 15.0;          (* кВт *)
-    rNominalCurrent : REAL := 30.0;        (* А *)
-    rNominalSpeed : REAL := 2950.0;        (* об/мин *)
+    rNominalFlow : REAL := 4.8;          (* м?/ч *)
+    rNominalHead : REAL := 20.0;           (* м *)
+    rNominalPower : REAL := 0.75;          (* кВт *)
+    rNominalCurrent : REAL := 0.0;        (* А !!!!!!!!!!*)
+    rNominalSpeed : REAL := 2900.0;        (* об/мин *)
     
     (* Рабочие диапазоны *)
     rMinFlow : REAL := 10.0;               (* м?/ч *)

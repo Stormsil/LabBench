@@ -16,8 +16,5 @@ STRUCT
     (* Задания *)
     rManualSetpoint : REAL;    (* Ручная уставка частоты *)
     rAutoSetpoint : REAL;      (* Автоматическая уставка *)
-    
-    (* Сервисные команды *)
-    xAcknowledge : BOOL;       (* Квитирование *)
 END_STRUCT
 END_TYPE

@@ -10,7 +10,6 @@ TYPE E_PumpState :
     PUMP_STATE_STARTING := 3,      (* Запуск *)
     PUMP_STATE_RUNNING := 4,       (* Работа *)
     PUMP_STATE_STOPPING := 5,      (* Останов *)
-    PUMP_STATE_FAULT := 6,         (* Авария *)
-    PUMP_STATE_TEST := 7           (* Тестирование *)
+    PUMP_STATE_FAULT := 6          (* Авария *)
 );
 END_TYPE

@@ -1,8 +1,6 @@
 (* @NESTEDCOMMENTS := 'Yes' *)
 (* @PATH := '\/Pump' *)
 (* @OBJECTFLAGS := '0, 8' *)
-(*Примечание: Классы ошибок насоса 
-  Описание: Классификация ошибок, связанных с работой насоса *)
 TYPE E_PumpFaultClass :
 (
     PUMP_FAULT_NONE := 0,

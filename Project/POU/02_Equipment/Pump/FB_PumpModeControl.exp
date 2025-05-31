@@ -64,8 +64,8 @@ CASE i_eCurrentState OF
         END_IF
         
     PUMP_STATE_RUNNING:
-        (* При работе можно менять между MANUAL/AUTO/CASCADE *)
-        IF (eMode >= PUMP_MODE_MANUAL) AND (eModeRequest >= PUMP_MODE_MANUAL) THEN
+        (* При работе можно менять между MANUAL/AUTO *)
+        IF (eMode = PUMP_MODE_MANUAL AND eModeRequest = PUMP_MODE_AUTO) OR (eMode = PUMP_MODE_AUTO AND eModeRequest = PUMP_MODE_MANUAL) THEN
             xModeChangeAllowed := TRUE;
         (* Или переходить в OOS для аварийного останова *)
         ELSIF eModeRequest = PUMP_MODE_OOS THEN
@@ -107,7 +107,7 @@ CASE eMode OF
         (* Валиден если есть связь с ПЧ *)
         o_xModeValid := i_xFCReady AND NOT i_xFCFault;
         
-    PUMP_MODE_AUTO, PUMP_MODE_CASCADE:
+    PUMP_MODE_AUTO:
         (* Валиден если есть связь и автоматика активна *)
         o_xModeValid := i_xFCReady AND NOT i_xFCFault;
 END_CASE
@@ -127,18 +127,18 @@ CASE eMode OF
         (* Ручная уставка *)
         rActiveSetpoint := i_stCommands.rManualSetpoint;
         
-    PUMP_MODE_AUTO, PUMP_MODE_CASCADE:
+    PUMP_MODE_AUTO:
         (* Автоматическая уставка *)
         rActiveSetpoint := i_stCommands.rAutoSetpoint;
 END_CASE
 
 (* Безударный переход при смене режима *)
 IF eMode <> eModePrev THEN
-    (* При переходе между MANUAL и AUTO/CASCADE *)
-    IF (eModePrev = PUMP_MODE_MANUAL) AND (eMode >= PUMP_MODE_AUTO) THEN
+    (* При переходе между MANUAL и AUTO *)
+    IF (eModePrev = PUMP_MODE_MANUAL) AND (eMode = PUMP_MODE_AUTO) THEN
         (* Начинаем с текущей ручной уставки *)
         rAutoSetpoint := rManualSetpoint;
-    ELSIF (eModePrev >= PUMP_MODE_AUTO) AND (eMode = PUMP_MODE_MANUAL) THEN
+    ELSIF (eModePrev = PUMP_MODE_AUTO) AND (eMode = PUMP_MODE_MANUAL) THEN
         (* Начинаем с текущей автоматической уставки *)
         rManualSetpoint := rAutoSetpoint;
     END_IF

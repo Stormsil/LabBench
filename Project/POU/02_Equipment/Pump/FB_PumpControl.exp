@@ -205,10 +205,6 @@ CASE eState OF
             END_IF
         END_IF
         
-    PUMP_STATE_TEST:
-        (* Тестирование - для будущего использования *)
-        o_xFCStart := FALSE;
-        
 END_CASE
 
 (* Выходы *)

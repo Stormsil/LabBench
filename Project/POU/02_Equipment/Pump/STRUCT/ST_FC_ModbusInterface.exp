@@ -1,17 +1,21 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+
 TYPE ST_FC_ModbusInterface :
 STRUCT
     (* Чтение *)
-    wStatusWord : WORD;
-    wFaultCode : WORD;
-    wFrequency : WORD;
-    wCurrent : WORD;
-    wVoltage : WORD;
-    wSpeed : WORD;
-    wDCLinkVoltage : WORD;
-    wTemperature : WORD;
-    
+    wStatusWord : WORD; (* Слово состояния *)
+    wFaultCode : WORD;  (* Код ошибки *)
+    wFrequency : WORD;  (* Частота *)
+    wCurrent : WORD;    (* Ток *)
+    wVoltage : WORD;    (* Напряжение *)
+    wSpeed : WORD;      (* Скорость *)
+    wDCLinkVoltage : WORD; (* Напряжение на шине постоянного тока *)
+    wTemperature : WORD; (* Температура *)
+
     (* Запись *)
-    wCommandWord : WORD;
-    wFreqSetpoint : WORD;
+    wCommandWord : WORD; (* Слово команд *)
+    wFreqSetpoint : WORD; (* Уставка частоты *)
 END_STRUCT
 END_TYPE

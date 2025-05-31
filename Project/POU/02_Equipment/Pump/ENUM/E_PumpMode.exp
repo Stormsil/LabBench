@@ -7,7 +7,6 @@ TYPE E_PumpMode :
     PUMP_MODE_OOS := 0,        (* Out of Service - выведен из работы *)
     PUMP_MODE_LOCAL := 1,      (* Местное управление *)
     PUMP_MODE_MANUAL := 2,     (* Ручное управление от SCADA *)
-    PUMP_MODE_AUTO := 3,       (* Автоматическое управление *)
-    PUMP_MODE_CASCADE := 4     (* Каскадное управление от ПИД *)
+    PUMP_MODE_AUTO := 3       (* Автоматическое управление *)
 );
 END_TYPE
