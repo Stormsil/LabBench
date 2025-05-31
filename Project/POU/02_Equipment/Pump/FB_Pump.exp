@@ -25,7 +25,6 @@ VAR_INPUT
     
     (* Внешние блокировки *)
     i_xExternalInterlock : BOOL;        (* Внешняя блокировка *)
-    i_xLowLevelInterlock : BOOL;        (* Блокировка по уровню *)
     
     (* Конфигурация *)
     i_stConfig : ST_PumpConfig;         (* Конфигурация насоса *)
@@ -130,7 +129,6 @@ fbPumpProtection(
     i_stConfig := i_stConfig,
     i_xRunning := fbFrequencyConverter.xRunning,
     i_xExternalInterlock := i_xExternalInterlock,
-    i_xLowLevelInterlock := i_xLowLevelInterlock,
     o_xInterlock := xFCInterlock,
     o_eFaultClass := o_eFaultClass,
     o_wFaultCode := 
@@ -178,7 +176,7 @@ fbPumpDiagnostics(
     i_stConfig := i_stConfig,
     i_xRunning := o_xRunning,
     i_xStart := stCommands.xStart AND NOT o_xRunning,
-    o_stDiagnostics := o_stDiagnostics
+    o_stDiagnostics => o_stDiagnostics
 );
 
 (* Определение предупреждений *)
